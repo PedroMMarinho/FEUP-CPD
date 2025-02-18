@@ -55,6 +55,17 @@ def main():
     papi.destroy_eventset(evs)   
     '''
 
+def handleBlockFunctions(n,block_size):
+    print("1. Normal Block Matrix Multiplication") 
+    print("2. Block Matrix Multiplication with Inline Multiplication")
+    option = int(input("Choose an option: "))
+    match option:
+        case 1:
+            block_multiplication(n,block_size)
+        case 2:
+            block_line_multiplication(n,block_size)
+        case _:
+            print("Invalid input")
 
 def matrix_product(n):
     matrix1 = []
