@@ -543,6 +543,98 @@ void handleParallelizationOption(int lin, int col){
 	}
 }
 
+void execFunctionWithTimeBullet1_2(void (*f)(int,int,double&), int lin, int col, double timeTaken,int EventSet){
+	int ret;
+	long long values[2];
+		
+	for (int i = 0; i < 3; i++){
+		for (int lin = 600; lin <= 3000; lin+=400){
+			// Start counting
+			ret = PAPI_start(EventSet);
+			if (ret != PAPI_OK)
+				cout << "ERROR: Start PAPI" << endl;
+			col = lin;
+			f(lin,col,timeTaken);
+	
+			// Reset Counting
+			ret = PAPI_stop(EventSet, values);
+			if (ret != PAPI_OK)
+				cout << "ERROR: Stop PAPI" << endl;
+			printf("L1 DCM: %lld \n", values[0]);
+			printf("L2 DCM: %lld \n", values[1]);
+	
+			ret = PAPI_reset(EventSet);
+			if (ret != PAPI_OK)
+				std::cout << "FAIL reset" << endl;
+		}
+	}
+}
+
+void execParallelFunctionWithTimeBullet1_2(void (*f)(int,int,double&), int lin, int col, double timeTaken,int EventSet){
+	int numThreads[4] = {4,8,12,24};
+	int ret;
+	long long values[2];
+
+
+	for(int i = 0; i < 3; i++){
+		for (auto threads: numThreads){
+			// set num of thredas
+			omp_set_num_threads(threads);
+
+			for (int lin = 600; lin <= 3000; lin+=400){
+				// Start counting
+				ret = PAPI_start(EventSet);
+				if (ret != PAPI_OK)
+					cout << "ERROR: Start PAPI" << endl;
+				col = lin;
+				f(lin,col,timeTaken);
+		
+				// Reset Counting
+				ret = PAPI_stop(EventSet, values);
+				if (ret != PAPI_OK)
+					cout << "ERROR: Stop PAPI" << endl;
+				printf("L1 DCM: %lld \n", values[0]);
+				printf("L2 DCM: %lld \n", values[1]);
+		
+				ret = PAPI_reset(EventSet);
+				if (ret != PAPI_OK)
+					std::cout << "FAIL reset" << endl;
+			}
+		}
+	}
+
+}
+
+void handleTestCases(int EventSet){
+	// Execute tree times each function that is called
+	int lin, col, blockSize, ret;
+	double timeTaken;
+
+	// Handle Bullet point 1
+	execFunctionWithTimeBullet1_2(&OnMult,lin,col,timeTaken,EventSet);
+	execFunctionWithTimeBullet1_2(&OnMultLine,lin,col,timeTaken,EventSet);
+
+	execParallelFunctionWithTimeBullet1_2(&OnMultParallelized,lin,col,timeTaken,EventSet);
+	execParallelFunctionWithTimeBullet1_2(&OnMultLineParallelized,lin,col,timeTaken,EventSet);
+
+
+	//execFunctionWithBlockSize(&OnMultBlockInline,lin,col,blockSize,EventSet);
+	//execFunctionWithBlockSize(&OnMultBlock,lin,col,blockSize,EventSet);
+
+	ret = PAPI_remove_event(EventSet, PAPI_L1_DCM);
+	if (ret != PAPI_OK)
+		std::cout << "FAIL remove event" << endl;
+
+	ret = PAPI_remove_event(EventSet, PAPI_L2_DCM);
+	if (ret != PAPI_OK)
+		std::cout << "FAIL remove event" << endl;
+
+	ret = PAPI_destroy_eventset(&EventSet);
+	if (ret != PAPI_OK)
+		std::cout << "FAIL destroy" << endl;
+}
+
+
 int main(int argc, char *argv[])
 {
 
@@ -550,7 +642,7 @@ int main(int argc, char *argv[])
 	char c;
 	int lin, col, blockSize;
 	int op;
-	
+	string testString = argv[1];
 	int EventSet = PAPI_NULL;
 	long long values[2];
 	int ret;
@@ -570,6 +662,12 @@ int main(int argc, char *argv[])
 	ret = PAPI_add_event(EventSet, PAPI_L2_DCM);
 	if (ret != PAPI_OK)
 		cout << "ERROR: PAPI_L2_DCM" << endl;
+
+	
+	if(testString == "test"){
+		handleTestCases(EventSet);
+		return 0;
+	}
 
 	op = 1;
 	do
