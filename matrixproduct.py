@@ -242,14 +242,14 @@ def handleTestCases():
     
     print(" Complete!")
 
-    print("== Line multiplication tests ==")
+    print("== Line multiplication tests ==",end='')
     for n in range(600, 3001, 400):
         testFunc(matrix_product, n)
     
     print(" Complete!")
 
 
-    print("== Normal Block multiplication tests ==")
+    print("== Normal Block multiplication tests ==",end='')
 
     for n in range(4096, 10241,2048):
         bkSizes = [128,256,512]
@@ -259,7 +259,7 @@ def handleTestCases():
     print(" Complete!")
 
 
-    print("== Block multiplication with Inline Multiplication tests ==")
+    print("== Block multiplication with Inline Multiplication tests ==",end='')
     for n in range(4096, 10241,2048):
         bkSizes = [128,256,512]
         for bkSize in bkSizes:
