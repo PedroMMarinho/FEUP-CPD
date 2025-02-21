@@ -307,7 +307,7 @@ func handleTestCases() {
 	fmt.Println(" Complete!")
 
 
-	fmt.Print("== Block multiplication with Inline Multiplicationtests ==")
+	fmt.Print("== Block multiplication with Inline Multiplication tests ==")
 	for n := 4096; n <= 10240; n+= 2048{
 		for bkSize := 128; bkSize <= 512; bkSize*=2{
 			testBlockFunc(OnMultBlockLine,n,bkSize)
@@ -340,7 +340,7 @@ func testBlockFunc(f func(int,int) float64, n int, bkSize int) {
 		avg += f(n,bkSize)
 	}
 
-	avg /= 3
+	avg /= 3.0
 
 	// put here code for csv
 
