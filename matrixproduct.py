@@ -1,4 +1,5 @@
 from time import perf_counter
+import sys
 '''
 from pypapi import papi_low as papi
 from pypapi import events
@@ -14,6 +15,12 @@ def main():
     papi.add_event(evs,events.PAPI_L1_DCM) 
     papi.add_event(evs,events.PAPI_L2_DCM)
     '''
+
+    args = sys.argv[1:]
+
+    if args and args[0] == "test":
+        handleTestCases()
+        return
     
     while True:
         print("1. Matrix Product")
@@ -225,6 +232,64 @@ def block_multiplication(n,block_size):
     for j in range(min(10, n)):
         print(f"{result[j]} ", end='')
     print("\n")
+
+
+def handleTestCases():
+    print("== Normal multiplication tests ==", end='')
+
+    for n in range(600, 3001, 400):
+        testFunc(matrix_product, n)
+    
+    print(" Complete!")
+
+    print("== Line multiplication tests ==",end='')
+    for n in range(600, 3001, 400):
+        testFunc(matrix_product, n)
+    
+    print(" Complete!")
+
+
+    print("== Normal Block multiplication tests ==",end='')
+
+    for n in range(4096, 10241,2048):
+        bkSizes = [128,256,512]
+        for bkSize in bkSizes:
+            testBlockFunc(block_multiplication,n,bkSize)
+
+    print(" Complete!")
+
+
+    print("== Block multiplication with Inline Multiplication tests ==",end='')
+    for n in range(4096, 10241,2048):
+        bkSizes = [128,256,512]
+        for bkSize in bkSizes:
+            testBlockFunc(block_line_multiplication,n,bkSize)
+            
+    print(" Complete!")
+
+
+
+def testFunc( f, n):
+    avg = 0.0
+
+    for i in range(3):
+        avg += f(n)
+    
+    avg /= 3.0
+
+    # put csv code here
+
+def testBlockFunc( f , n , bkSize):
+    avg = 0.0
+
+    for i in range(3):
+        avg += f(n,bkSize)
+    
+    avg /= 3.0
+
+    # put csv code here
+
+
 
 
 if __name__ == "__main__":
