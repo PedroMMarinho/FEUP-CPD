@@ -642,7 +642,11 @@ int main(int argc, char *argv[])
 	char c;
 	int lin, col, blockSize;
 	int op;
-	string testString = argv[1];
+	
+	string testString = "";
+	if (argv[1] != NULL)
+		testString = argv[1];
+
 	int EventSet = PAPI_NULL;
 	long long values[2];
 	int ret;
