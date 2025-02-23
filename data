@@ -1,7 +1,0 @@
-functionType- ["Normal Mult", "Parallelized Normal Mult", "Inline Mult", "Parallelized Inline Mult", "Block Mult", "Inline Block Mult"]
-L2 DCM
-L1 DCM
-MatrixSize
-BlockSize?
-NumThreads?
-CPU Time - 
