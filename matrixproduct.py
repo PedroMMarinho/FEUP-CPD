@@ -236,7 +236,7 @@ def block_multiplication(n,block_size):
 
 def handleTestCases():
 
-    file = open("output/data_py.csv", "w")
+    file = open("docs/data_py.csv", "w")
 
     print("== Normal multiplication tests ==", end='')
 
@@ -247,7 +247,7 @@ def handleTestCases():
 
     print("== Line multiplication tests ==",end='')
     for n in range(600, 3001, 400):
-        testFunc(matrix_product, n)
+        testFunc(line_multiplication, n)
     
     print(" Complete!")
 
