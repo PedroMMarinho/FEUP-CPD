@@ -53,11 +53,11 @@ void OnMult(int m_ar, int m_br, double &timeTaken)
 	end = omp_get_wtime();
 	Time2 = clock();
 
-	sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
-	cout << st;
+	//sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
+	//cout << st;
 
 	// display 10 elements of the result matrix to verify correctness
-	
+	/*
 	cout << "Result matrix: " << endl;
 	for (i = 0; i < 1; i++)
 	{
@@ -65,6 +65,7 @@ void OnMult(int m_ar, int m_br, double &timeTaken)
 			cout << phc[j] << " ";
 	}
 	cout << endl;
+	*/
 	
 
 	timeTaken = end - start;
@@ -143,10 +144,11 @@ void OnMultLine(int m_ar, int m_br, double &timeTaken)
 	}
 	end = omp_get_wtime();
 	Time2 = clock();
-	sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
-	cout << st;
+	//sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
+	//cout << st;
 
 	// display 10 elements of the result matrix tto verify correctness
+	/*
 	cout << "Result matrix: " << endl;
 	for (i = 0; i < 1; i++)
 	{
@@ -155,6 +157,7 @@ void OnMultLine(int m_ar, int m_br, double &timeTaken)
 	}
 	cout << endl;
 	timeTaken = end - start;
+	*/
 
 	free(pha);
 	free(phb);
@@ -219,10 +222,11 @@ void OnMultBlockInline(int m_ar, int m_br, int bkSize, double& timeTaken)
 	}
 	end = omp_get_wtime();
 	Time2 = clock();
-	sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
-	cout << st;
+	//sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
+	//cout << st;
 
 	// display 10 elements of the result matrix tto verify correctness
+	/*
 	cout << "Result matrix: " << endl;
 	for (i = 0; i < 1; i++)
 	{
@@ -230,6 +234,7 @@ void OnMultBlockInline(int m_ar, int m_br, int bkSize, double& timeTaken)
 			cout << phc[j] << " ";
 	}
 	cout << endl;
+	*/
 	timeTaken = start - end;
 	free(pha);
 	free(phb);
@@ -294,10 +299,12 @@ void OnMultBlock(int m_ar, int m_br, int bkSize, double& timeTaken)
 	}
 	end = omp_get_wtime();
 	Time2 = clock();
-	sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
-	cout << st;
 
-	// display 10 elements of the result matrix tto verify correctness
+	//sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
+	//cout << st;
+
+	// display 10 elements of the result matrix to verify correctness
+	/*
 	cout << "Result matrix: " << endl;
 	for (i = 0; i < 1; i++)
 	{
@@ -305,6 +312,7 @@ void OnMultBlock(int m_ar, int m_br, int bkSize, double& timeTaken)
 			cout << phc[j] << " ";
 	}
 	cout << endl;
+	*/
 	timeTaken = start - end;
 	free(pha);
 	free(phb);
@@ -356,10 +364,11 @@ void OnMultParallelized(int m_ar, int m_br, double &timeTaken)
 
 	end = omp_get_wtime();
 	Time2 = clock();
-	sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
-	cout << st;
+	//sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
+	//cout << st;
 
 	// display 10 elements of the result matrix tto verify correctness
+	/*
 	cout << "Result matrix: " << endl;
 	for (i = 0; i < 1; i++)
 	{
@@ -367,9 +376,10 @@ void OnMultParallelized(int m_ar, int m_br, double &timeTaken)
 			cout << phc[j] << " ";
 	}
 	cout << endl;
+	*/
 
 	double gflops = (2.0 * m_ar * m_ar * m_br) / ((end - start) * 1e6);
-	printf("Performance: %.2f MFLOPS\n", gflops);
+	//printf("Performance: %.2f MFLOPS\n", gflops);
 	timeTaken = end - start;
 	free(pha);
 	free(phb);
@@ -431,10 +441,11 @@ void OnMultLineParallelized(int m_ar, int m_br, double &timeTaken)
 
 	end = omp_get_wtime();
 	Time2 = clock();
-	sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
-	cout << st;
+	//sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
+	//cout << st;
 
 	// display 10 elements of the result matrix tto verify correctness
+	/*~
 	cout << "Result matrix: " << endl;
 	for (i = 0; i < 1; i++)
 	{
@@ -442,10 +453,11 @@ void OnMultLineParallelized(int m_ar, int m_br, double &timeTaken)
 			cout << phc[j] << " ";
 	}
 	cout << endl;
+	*/
 
 	double gflops = (2.0 * m_ar * m_ar * m_br) / ((end - start) * 1e6);
-	printf("Performance: %.2f MFLOPS\n", gflops);
-	printf("Number of Threads: %d\n", num_threads);
+	//printf("Performance: %.2f MFLOPS\n", gflops);
+	//printf("Number of Threads: %d\n", num_threads);
 	timeTaken = end - start;
 
 	free(pha);
@@ -598,8 +610,8 @@ void execFunctionWithTimeBullet1_2(void (*f)(int, int, double &), int lin, int c
 			ret = PAPI_stop(EventSet, values);
 			if (ret != PAPI_OK)
 				cout << "ERROR: Stop PAPI" << endl;
-			printf("L1 DCM: %lld \n", values[0]);
-			printf("L2 DCM: %lld \n", values[1]);
+			//printf("L1 DCM: %lld \n", values[0]);
+			//printf("L2 DCM: %lld \n", values[1]);
 
 			// write to CSV
 			writeToCSVFile(funcType,values[1],values[0],lin,-1,-1,timeTaken);
@@ -616,7 +628,7 @@ void execParallelFunctionWithTimeBullet1_2(void (*f)(int, int, double &), int li
 	int ret;
 	long long values[2];
 
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < 1; i++)
 	{
 		for (auto threads : numThreads)
 		{
@@ -763,20 +775,42 @@ void handleTestCases(int EventSet)
 	double timeTaken;
 
 	// Handle Bullet point 1 Serial Mult
+	printf("Starting onMult function ... \n");
 	execFunctionWithTimeBullet1_2(&OnMult, lin, col, timeTaken, EventSet,"Normal Mult");
+	printf("Finished onMult function \n\n");
+
+	printf("Starting onMultLine function ... \n");
 	execFunctionWithTimeBullet1_2(&OnMultLine, lin, col, timeTaken, EventSet,"Inline Mult" );
+	printf("Finished onMultLine function\n\n");
+
 	// Parallel Mult
+	printf("Starting OnMultParallelized function ... \n");
 	execParallelFunctionWithTimeBullet1_2(&OnMultParallelized, lin, col, timeTaken, EventSet, "Parallelized Normal Mult");
+	printf("Finished OnMultParallelized function \n \n");
+
+	printf("Starting OnMultLineParallelized function ... \n");
 	execParallelFunctionWithTimeBullet1_2(&OnMultLineParallelized, lin, col, timeTaken, EventSet, "Parallelized Inline Mult");
+	printf("Finished OnMultLineParallelized function \n \n");
+
 
 	// Handle Bullet point 2
+	printf("Starting OnMultLine point 2 ... \n");
 	execFunctionWithTimeBullet2(&OnMultLine, lin, col, timeTaken, EventSet,"Inline Mult" );
+	printf("Finished OnMultLine point 2 \n\n");
+
+	printf("Starting OnMultLineParallelized point 2 ... \n");
 	execParallelFunctionWithTimeBullet2(&OnMultLineParallelized, lin, col, timeTaken, EventSet, "Parallelized Inline Mult");
+	printf("Starting OnMultLineParallelized point 2 \n \n");
 
 	// Handle Bullet point 3
 
+	printf("Starting OnMultBlockInline ...\n");
 	execFunctionWithBlockSize(&OnMultBlockInline, lin, col, EventSet, "Inline Block Mult");
+	printf("Finished OnMultBlockInline \n\n");
+	// Possibly unfeasible
+	printf("Starting OnMultBlock ... \n");
 	execFunctionWithBlockSize(&OnMultBlock, lin, col, EventSet, "Block Mult");
+	printf("Finished OnMultBlock \n\n");
 
 	ret = PAPI_remove_event(EventSet, PAPI_L1_DCM);
 	if (ret != PAPI_OK)
