@@ -53,11 +53,11 @@ void OnMult(int m_ar, int m_br, double &timeTaken)
 	end = omp_get_wtime();
 	Time2 = clock();
 
-	// sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
-	// cout << st;
+	sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
+	cout << st;
 
 	// display 10 elements of the result matrix to verify correctness
-	/*
+	
 	cout << "Result matrix: " << endl;
 	for (i = 0; i < 1; i++)
 	{
@@ -65,7 +65,7 @@ void OnMult(int m_ar, int m_br, double &timeTaken)
 			cout << phc[j] << " ";
 	}
 	cout << endl;
-	*/
+	
 
 	timeTaken = end - start;
 	free(pha);
@@ -162,7 +162,7 @@ void OnMultLine(int m_ar, int m_br, double &timeTaken)
 }
 
 // 1.3.1 - Multiplication of two matrices by block with inline multiplication
-void OnMultBlockInline(int m_ar, int m_br, int bkSize)
+void OnMultBlockInline(int m_ar, int m_br, int bkSize, double& timeTaken)
 {
 
 	SYSTEMTIME Time1, Time2;
@@ -173,6 +173,7 @@ void OnMultBlockInline(int m_ar, int m_br, int bkSize)
 
 	double *pha, *phb, *phc;
 
+	double start, end;
 	pha = (double *)malloc((m_ar * m_ar) * sizeof(double));
 	phb = (double *)malloc((m_ar * m_ar) * sizeof(double));
 	phc = (double *)malloc((m_ar * m_ar) * sizeof(double));
@@ -191,6 +192,7 @@ void OnMultBlockInline(int m_ar, int m_br, int bkSize)
 
 	Time1 = clock();
 	// block algorithm using inline multiplication
+	start = omp_get_wtime();
 
 	for (int bi = 0; bi < m_br; bi = bi + bkSize)
 	{
@@ -215,7 +217,7 @@ void OnMultBlockInline(int m_ar, int m_br, int bkSize)
 			}
 		}
 	}
-
+	end = omp_get_wtime();
 	Time2 = clock();
 	sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
 	cout << st;
@@ -228,13 +230,13 @@ void OnMultBlockInline(int m_ar, int m_br, int bkSize)
 			cout << phc[j] << " ";
 	}
 	cout << endl;
-
+	timeTaken = start - end;
 	free(pha);
 	free(phb);
 	free(phc);
 }
 // 1.3.2 - Multiplication of two matrices by block
-void OnMultBlock(int m_ar, int m_br, int bkSize)
+void OnMultBlock(int m_ar, int m_br, int bkSize, double& timeTaken)
 {
 
 	SYSTEMTIME Time1, Time2;
@@ -242,6 +244,7 @@ void OnMultBlock(int m_ar, int m_br, int bkSize)
 	char st[100];
 	double temp;
 	int i, j, k;
+	double start, end;
 
 	double *pha, *phb, *phc;
 
@@ -262,6 +265,7 @@ void OnMultBlock(int m_ar, int m_br, int bkSize)
 			phc[i * m_br + j] = (double)(0);
 
 	Time1 = clock();
+	start = omp_get_wtime();
 
 	for (int bi = 0; bi < m_br; bi = bi + bkSize)
 	{
@@ -288,7 +292,7 @@ void OnMultBlock(int m_ar, int m_br, int bkSize)
 			}
 		}
 	}
-
+	end = omp_get_wtime();
 	Time2 = clock();
 	sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
 	cout << st;
@@ -301,7 +305,7 @@ void OnMultBlock(int m_ar, int m_br, int bkSize)
 			cout << phc[j] << " ";
 	}
 	cout << endl;
-
+	timeTaken = start - end;
 	free(pha);
 	free(phb);
 	free(phc);
@@ -478,14 +482,15 @@ void chooseBlockFunction(int lin, int col, int blockSize)
 	cout << "2. Block Matrix Multiplication with Inline Multiplication" << endl;
 	cout << "Selection?: ";
 	cin >> op;
+	double timeTaken;
 
 	switch (op)
 	{
 	case 1:
-		OnMultBlock(lin, col, blockSize);
+		OnMultBlock(lin, col, blockSize,timeTaken);
 		break;
 	case 2:
-		OnMultBlockInline(lin, col, blockSize);
+		OnMultBlockInline(lin, col, blockSize,timeTaken);
 		break;
 	default:
 		cout << "Invalid Input" << endl;
@@ -631,9 +636,9 @@ void execParallelFunctionWithTimeBullet1_2(void (*f)(int, int, double &), int li
 				ret = PAPI_stop(EventSet, values);
 				if (ret != PAPI_OK)
 					cout << "ERROR: Stop PAPI" << endl;
-				printf("L1 DCM: %lld \n", values[0]);
-				printf("L2 DCM: %lld \n", values[1]);
-				// write to CSV
+				//printf("L1 DCM: %lld \n", values[0]);
+				//printf("L2 DCM: %lld \n", values[1]);
+				writeToCSVFile(funcType,values[1],values[0],lin,-1,threads,timeTaken);
 				ret = PAPI_reset(EventSet);
 				if (ret != PAPI_OK)
 					std::cout << "FAIL reset" << endl;
@@ -663,9 +668,9 @@ void execFunctionWithTimeBullet2(void (*f)(int, int, double &), int lin, int col
 			ret = PAPI_stop(EventSet, values);
 			if (ret != PAPI_OK)
 				cout << "ERROR: Stop PAPI" << endl;
-			printf("L1 DCM: %lld \n", values[0]);
-			printf("L2 DCM: %lld \n", values[1]);
-			// write to CSV
+			//printf("L1 DCM: %lld \n", values[0]);
+			//printf("L2 DCM: %lld \n", values[1]);
+			writeToCSVFile(funcType,values[1],values[0],lin,-1,-1,timeTaken);
 			ret = PAPI_reset(EventSet);
 			if (ret != PAPI_OK)
 				std::cout << "FAIL reset" << endl;
@@ -700,9 +705,10 @@ void execParallelFunctionWithTimeBullet2(void (*f)(int, int, double &), int lin,
 				ret = PAPI_stop(EventSet, values);
 				if (ret != PAPI_OK)
 					cout << "ERROR: Stop PAPI" << endl;
-				printf("L1 DCM: %lld \n", values[0]);
-				printf("L2 DCM: %lld \n", values[1]);
-				// write to CSV
+				//printf("L1 DCM: %lld \n", values[0]);
+				//printf("L2 DCM: %lld \n", values[1]);
+
+				writeToCSVFile(funcType,values[1],values[0],lin,-1,threads,timeTaken);
 				ret = PAPI_reset(EventSet);
 				if (ret != PAPI_OK)
 					std::cout << "FAIL reset" << endl;
@@ -711,11 +717,13 @@ void execParallelFunctionWithTimeBullet2(void (*f)(int, int, double &), int lin,
 	}
 }
 
-void execFunctionWithBlockSize(void (*f)(int, int, int), int lin, int col, int EventSet, string funcType)
+void execFunctionWithBlockSize(void (*f)(int, int, int, double&), int lin, int col, int EventSet, string funcType)
 {
 	int ret;
 	long long values[2];
 	int blockSizes[3] = {128, 256, 512};
+
+	double timeTaken;
 
 	for (int i = 0; i < 3; i++)
 	{
@@ -730,7 +738,7 @@ void execFunctionWithBlockSize(void (*f)(int, int, int), int lin, int col, int E
 				if (ret != PAPI_OK)
 					cout << "ERROR: Start PAPI" << endl;
 				col = lin;
-				f(lin, col, blockSize);
+				f(lin, col, blockSize,timeTaken);
 
 				// Reset Counting
 				ret = PAPI_stop(EventSet, values);
@@ -738,7 +746,8 @@ void execFunctionWithBlockSize(void (*f)(int, int, int), int lin, int col, int E
 					cout << "ERROR: Stop PAPI" << endl;
 				//printf("L1 DCM: %lld \n", values[0]);
 				//printf("L2 DCM: %lld \n", values[1]);
-				// write to CSV
+				
+				writeToCSVFile(funcType,values[1],values[0],lin,blockSize,-1,timeTaken);
 				ret = PAPI_reset(EventSet);
 				if (ret != PAPI_OK)
 					std::cout << "FAIL reset" << endl;
