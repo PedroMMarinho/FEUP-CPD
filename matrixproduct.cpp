@@ -53,8 +53,8 @@ void OnMult(int m_ar, int m_br, double &timeTaken)
 	end = omp_get_wtime();
 	Time2 = clock();
 
-	//sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
-	//cout << st;
+	// sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
+	// cout << st;
 
 	// display 10 elements of the result matrix to verify correctness
 	/*
@@ -66,7 +66,6 @@ void OnMult(int m_ar, int m_br, double &timeTaken)
 	}
 	cout << endl;
 	*/
-	
 
 	timeTaken = end - start;
 	free(pha);
@@ -144,8 +143,8 @@ void OnMultLine(int m_ar, int m_br, double &timeTaken)
 	}
 	end = omp_get_wtime();
 	Time2 = clock();
-	//sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
-	//cout << st;
+	// sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
+	// cout << st;
 
 	// display 10 elements of the result matrix tto verify correctness
 	/*
@@ -165,7 +164,7 @@ void OnMultLine(int m_ar, int m_br, double &timeTaken)
 }
 
 // 1.3.1 - Multiplication of two matrices by block with inline multiplication
-void OnMultBlockInline(int m_ar, int m_br, int bkSize, double& timeTaken)
+void OnMultBlockInline(int m_ar, int m_br, int bkSize, double &timeTaken)
 {
 
 	SYSTEMTIME Time1, Time2;
@@ -222,8 +221,8 @@ void OnMultBlockInline(int m_ar, int m_br, int bkSize, double& timeTaken)
 	}
 	end = omp_get_wtime();
 	Time2 = clock();
-	//sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
-	//cout << st;
+	// sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
+	// cout << st;
 
 	// display 10 elements of the result matrix tto verify correctness
 	/*
@@ -241,7 +240,7 @@ void OnMultBlockInline(int m_ar, int m_br, int bkSize, double& timeTaken)
 	free(phc);
 }
 // 1.3.2 - Multiplication of two matrices by block
-void OnMultBlock(int m_ar, int m_br, int bkSize, double& timeTaken)
+void OnMultBlock(int m_ar, int m_br, int bkSize, double &timeTaken)
 {
 
 	SYSTEMTIME Time1, Time2;
@@ -300,8 +299,8 @@ void OnMultBlock(int m_ar, int m_br, int bkSize, double& timeTaken)
 	end = omp_get_wtime();
 	Time2 = clock();
 
-	//sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
-	//cout << st;
+	// sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
+	// cout << st;
 
 	// display 10 elements of the result matrix to verify correctness
 	/*
@@ -364,8 +363,8 @@ void OnMultParallelized(int m_ar, int m_br, double &timeTaken)
 
 	end = omp_get_wtime();
 	Time2 = clock();
-	//sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
-	//cout << st;
+	// sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
+	// cout << st;
 
 	// display 10 elements of the result matrix tto verify correctness
 	/*
@@ -379,7 +378,7 @@ void OnMultParallelized(int m_ar, int m_br, double &timeTaken)
 	*/
 
 	double gflops = (2.0 * m_ar * m_ar * m_br) / ((end - start) * 1e6);
-	//printf("Performance: %.2f MFLOPS\n", gflops);
+	// printf("Performance: %.2f MFLOPS\n", gflops);
 	timeTaken = end - start;
 	free(pha);
 	free(phb);
@@ -441,8 +440,8 @@ void OnMultLineParallelized(int m_ar, int m_br, double &timeTaken)
 
 	end = omp_get_wtime();
 	Time2 = clock();
-	//sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
-	//cout << st;
+	// sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
+	// cout << st;
 
 	// display 10 elements of the result matrix tto verify correctness
 	/*~
@@ -456,8 +455,8 @@ void OnMultLineParallelized(int m_ar, int m_br, double &timeTaken)
 	*/
 
 	double gflops = (2.0 * m_ar * m_ar * m_br) / ((end - start) * 1e6);
-	//printf("Performance: %.2f MFLOPS\n", gflops);
-	//printf("Number of Threads: %d\n", num_threads);
+	// printf("Performance: %.2f MFLOPS\n", gflops);
+	// printf("Number of Threads: %d\n", num_threads);
 	timeTaken = end - start;
 
 	free(pha);
@@ -499,10 +498,10 @@ void chooseBlockFunction(int lin, int col, int blockSize)
 	switch (op)
 	{
 	case 1:
-		OnMultBlock(lin, col, blockSize,timeTaken);
+		OnMultBlock(lin, col, blockSize, timeTaken);
 		break;
 	case 2:
-		OnMultBlockInline(lin, col, blockSize,timeTaken);
+		OnMultBlockInline(lin, col, blockSize, timeTaken);
 		break;
 	default:
 		cout << "Invalid Input" << endl;
@@ -595,9 +594,9 @@ void execFunctionWithTimeBullet1_2(void (*f)(int, int, double &), int lin, int c
 	int ret;
 	long long values[2];
 
-	for (int i = 0; i < 3; i++)
+	for (int lin = 600; lin <= 3000; lin += 400)
 	{
-		for (int lin = 600; lin <= 3000; lin += 400)
+		for (int i = 0; i < 30; i++)
 		{
 			// Start counting
 			ret = PAPI_start(EventSet);
@@ -610,11 +609,11 @@ void execFunctionWithTimeBullet1_2(void (*f)(int, int, double &), int lin, int c
 			ret = PAPI_stop(EventSet, values);
 			if (ret != PAPI_OK)
 				cout << "ERROR: Stop PAPI" << endl;
-			//printf("L1 DCM: %lld \n", values[0]);
-			//printf("L2 DCM: %lld \n", values[1]);
+			// printf("L1 DCM: %lld \n", values[0]);
+			// printf("L2 DCM: %lld \n", values[1]);
 
 			// write to CSV
-			writeToCSVFile(funcType,values[1],values[0],lin,-1,-1,timeTaken);
+			writeToCSVFile(funcType, values[1], values[0], lin, -1, -1, timeTaken);
 			ret = PAPI_reset(EventSet);
 			if (ret != PAPI_OK)
 				std::cout << "FAIL reset" << endl;
@@ -628,14 +627,14 @@ void execParallelFunctionWithTimeBullet1_2(void (*f)(int, int, double &), int li
 	int ret;
 	long long values[2];
 
-	for (int i = 0; i < 1; i++)
+	for (auto threads : numThreads)
 	{
-		for (auto threads : numThreads)
-		{
-			// set num of thredas
-			omp_set_num_threads(threads);
+		// set num of thredas
+		omp_set_num_threads(threads);
 
-			for (int lin = 600; lin <= 3000; lin += 400)
+		for (int lin = 600; lin <= 3000; lin += 400)
+		{
+			for (int i = 0; i < 30; i++)
 			{
 				// Start counting
 				ret = PAPI_start(EventSet);
@@ -648,9 +647,9 @@ void execParallelFunctionWithTimeBullet1_2(void (*f)(int, int, double &), int li
 				ret = PAPI_stop(EventSet, values);
 				if (ret != PAPI_OK)
 					cout << "ERROR: Stop PAPI" << endl;
-				//printf("L1 DCM: %lld \n", values[0]);
-				//printf("L2 DCM: %lld \n", values[1]);
-				writeToCSVFile(funcType,values[1],values[0],lin,-1,threads,timeTaken);
+				// printf("L1 DCM: %lld \n", values[0]);
+				// printf("L2 DCM: %lld \n", values[1]);
+				writeToCSVFile(funcType, values[1], values[0], lin, -1, threads, timeTaken);
 				ret = PAPI_reset(EventSet);
 				if (ret != PAPI_OK)
 					std::cout << "FAIL reset" << endl;
@@ -665,9 +664,9 @@ void execFunctionWithTimeBullet2(void (*f)(int, int, double &), int lin, int col
 	int ret;
 	long long values[2];
 
-	for (int i = 0; i < 3; i++)
+	for (int lin = 4096; lin <= 10240; lin += 2048)
 	{
-		for (int lin = 4096; lin <= 10240; lin += 2048)
+		for (int i = 0; i < 30; i++)
 		{
 			// Start counting
 			ret = PAPI_start(EventSet);
@@ -680,9 +679,9 @@ void execFunctionWithTimeBullet2(void (*f)(int, int, double &), int lin, int col
 			ret = PAPI_stop(EventSet, values);
 			if (ret != PAPI_OK)
 				cout << "ERROR: Stop PAPI" << endl;
-			//printf("L1 DCM: %lld \n", values[0]);
-			//printf("L2 DCM: %lld \n", values[1]);
-			writeToCSVFile(funcType,values[1],values[0],lin,-1,-1,timeTaken);
+			// printf("L1 DCM: %lld \n", values[0]);
+			// printf("L2 DCM: %lld \n", values[1]);
+			writeToCSVFile(funcType, values[1], values[0], lin, -1, -1, timeTaken);
 			ret = PAPI_reset(EventSet);
 			if (ret != PAPI_OK)
 				std::cout << "FAIL reset" << endl;
@@ -697,15 +696,16 @@ void execParallelFunctionWithTimeBullet2(void (*f)(int, int, double &), int lin,
 	int ret;
 	long long values[2];
 
-	for (int i = 0; i < 3; i++)
+	for (auto threads : numThreads)
 	{
-		for (auto threads : numThreads)
-		{
-			// set num of thredas
-			omp_set_num_threads(threads);
+		// set num of thredas
+		omp_set_num_threads(threads);
 
-			for (int lin = 4096; lin <= 10240; lin += 2048)
+		for (int lin = 4096; lin <= 10240; lin += 2048)
+		{
+			for (int i = 0; i < 30; i++)
 			{
+
 				// Start counting
 				ret = PAPI_start(EventSet);
 				if (ret != PAPI_OK)
@@ -717,10 +717,10 @@ void execParallelFunctionWithTimeBullet2(void (*f)(int, int, double &), int lin,
 				ret = PAPI_stop(EventSet, values);
 				if (ret != PAPI_OK)
 					cout << "ERROR: Stop PAPI" << endl;
-				//printf("L1 DCM: %lld \n", values[0]);
-				//printf("L2 DCM: %lld \n", values[1]);
+				// printf("L1 DCM: %lld \n", values[0]);
+				// printf("L2 DCM: %lld \n", values[1]);
 
-				writeToCSVFile(funcType,values[1],values[0],lin,-1,threads,timeTaken);
+				writeToCSVFile(funcType, values[1], values[0], lin, -1, threads, timeTaken);
 				ret = PAPI_reset(EventSet);
 				if (ret != PAPI_OK)
 					std::cout << "FAIL reset" << endl;
@@ -729,7 +729,7 @@ void execParallelFunctionWithTimeBullet2(void (*f)(int, int, double &), int lin,
 	}
 }
 
-void execFunctionWithBlockSize(void (*f)(int, int, int, double&), int lin, int col, int EventSet, string funcType)
+void execFunctionWithBlockSize(void (*f)(int, int, int, double &), int lin, int col, int EventSet, string funcType)
 {
 	int ret;
 	long long values[2];
@@ -737,29 +737,28 @@ void execFunctionWithBlockSize(void (*f)(int, int, int, double&), int lin, int c
 
 	double timeTaken;
 
-	for (int i = 0; i < 3; i++)
+	for (int blockSize : blockSizes)
 	{
 
-		for (int blockSize : blockSizes)
+		for (int lin = 4096; lin <= 10240; lin += 2048)
 		{
-
-			for (int lin = 4096; lin <= 10240; lin += 2048)
+			for (int i = 0; i < 30; i++)
 			{
 				// Start counting
 				ret = PAPI_start(EventSet);
 				if (ret != PAPI_OK)
 					cout << "ERROR: Start PAPI" << endl;
 				col = lin;
-				f(lin, col, blockSize,timeTaken);
+				f(lin, col, blockSize, timeTaken);
 
 				// Reset Counting
 				ret = PAPI_stop(EventSet, values);
 				if (ret != PAPI_OK)
 					cout << "ERROR: Stop PAPI" << endl;
-				//printf("L1 DCM: %lld \n", values[0]);
-				//printf("L2 DCM: %lld \n", values[1]);
-				
-				writeToCSVFile(funcType,values[1],values[0],lin,blockSize,-1,timeTaken);
+				// printf("L1 DCM: %lld \n", values[0]);
+				// printf("L2 DCM: %lld \n", values[1]);
+
+				writeToCSVFile(funcType, values[1], values[0], lin, blockSize, -1, timeTaken);
 				ret = PAPI_reset(EventSet);
 				if (ret != PAPI_OK)
 					std::cout << "FAIL reset" << endl;
@@ -776,11 +775,11 @@ void handleTestCases(int EventSet)
 
 	// Handle Bullet point 1 Serial Mult
 	printf("Starting onMult function ... \n");
-	execFunctionWithTimeBullet1_2(&OnMult, lin, col, timeTaken, EventSet,"Normal Mult");
+	execFunctionWithTimeBullet1_2(&OnMult, lin, col, timeTaken, EventSet, "Normal Mult");
 	printf("Finished onMult function \n\n");
 
 	printf("Starting onMultLine function ... \n");
-	execFunctionWithTimeBullet1_2(&OnMultLine, lin, col, timeTaken, EventSet,"Inline Mult" );
+	execFunctionWithTimeBullet1_2(&OnMultLine, lin, col, timeTaken, EventSet, "Inline Mult");
 	printf("Finished onMultLine function\n\n");
 
 	// Parallel Mult
@@ -792,10 +791,9 @@ void handleTestCases(int EventSet)
 	execParallelFunctionWithTimeBullet1_2(&OnMultLineParallelized, lin, col, timeTaken, EventSet, "Parallelized Inline Mult");
 	printf("Finished OnMultLineParallelized function \n \n");
 
-
 	// Handle Bullet point 2
 	printf("Starting OnMultLine point 2 ... \n");
-	execFunctionWithTimeBullet2(&OnMultLine, lin, col, timeTaken, EventSet,"Inline Mult" );
+	execFunctionWithTimeBullet2(&OnMultLine, lin, col, timeTaken, EventSet, "Inline Mult");
 	printf("Finished OnMultLine point 2 \n\n");
 
 	printf("Starting OnMultLineParallelized point 2 ... \n");

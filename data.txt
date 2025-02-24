@@ -14,3 +14,12 @@ Real Time
 SpeedUp = TimeExecutionSerial/TimeExecutionNCores
 MFlops = 2*MatrixSize^3 / ExecutionTime * 10^6
 efficiency = SpeedUp / numberOfThreads
+
+Fazer gráficos deste tipo:
+
+
+Variação de Mflops com o tamanho da matriz (normalizar)
+
+Variação de cache misses e tempo de execução (normalizar)
+
+Usar a ferramenta r para estatistica
