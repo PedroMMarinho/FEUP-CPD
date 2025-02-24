@@ -5,7 +5,7 @@ from pypapi import papi_low as papi
 from pypapi import events
 '''
 
-
+file = None
 
 
 def main(): 
@@ -235,6 +235,9 @@ def block_multiplication(n,block_size):
 
 
 def handleTestCases():
+
+    file = open("output/data_py.csv", "w")
+
     print("== Normal multiplication tests ==", end='')
 
     for n in range(600, 3001, 400):
@@ -267,6 +270,8 @@ def handleTestCases():
             
     print(" Complete!")
 
+    file.close()
+
 
 
 def testFunc( f, n):
@@ -277,7 +282,7 @@ def testFunc( f, n):
     
     avg /= 3.0
 
-    # put csv code here
+    writeToCsv(f.__name__,avg,n)
 
 def testBlockFunc( f , n , bkSize):
     avg = 0.0
@@ -287,7 +292,31 @@ def testBlockFunc( f , n , bkSize):
     
     avg /= 3.0
 
-    # put csv code here
+    writeToCsv(f.__name__,avg,n,bkSize)
+
+
+def writeToCsv(funcName, time, n, bkSize=None): 
+    if funcName == "matrix_product":
+        csvName = "Normal Mult"
+    elif funcName == "line_multiplication":
+        csvName = "Inline Mult"
+    elif funcName == "block_multiplication":
+        csvName = "Block Mult"
+    elif funcName == "block_line_multiplication":
+        csvName = "Inline Block Mult"
+    else:
+        raise ValueError("Incorrect function name")
+    
+    
+
+    if bkSize == None:
+        csvBkSize = -1
+    else:
+        csvBkSize = bkSize
+
+
+    file.write(f"{csvName},-1,-1,{n},{csvBkSize},-1,{time}\n")
+
 
 
 
