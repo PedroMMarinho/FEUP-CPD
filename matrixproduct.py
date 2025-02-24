@@ -238,6 +238,8 @@ def handleTestCases():
 
     file = open("docs/data_py.csv", "w")
 
+    file.write("functionType,L2 DCM,L1 DCM,MatrixSize,BlockSize,NumThreads,Real Time")
+
     print("== Normal multiplication tests ==", end='')
 
     for n in range(600, 3001, 400):
