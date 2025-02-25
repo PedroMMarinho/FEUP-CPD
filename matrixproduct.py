@@ -279,7 +279,7 @@ def handleTestCases():
 def testFunc( f, n):
     avg = 0.0
 
-    for i in range(3):
+    for i in range(30):
         avg += f(n)
     
     avg /= 3.0
@@ -289,7 +289,7 @@ def testFunc( f, n):
 def testBlockFunc( f , n , bkSize):
     avg = 0.0
 
-    for i in range(3):
+    for i in range(30):
         avg += f(n,bkSize)
     
     avg /= 3.0
