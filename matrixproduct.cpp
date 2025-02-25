@@ -692,7 +692,7 @@ void execFunctionWithTimeBullet2(void (*f)(int, int, double &), int lin, int col
 // 4096x4096 -> 10240x10240 interval 2048 Parallel
 void execParallelFunctionWithTimeBullet2(void (*f)(int, int, double &), int lin, int col, double timeTaken, int EventSet, string funcType)
 {
-	int numThreads[4] = {4, 8, 12, 24};
+	int numThreads[4] = {8, 12, 24};
 	int ret;
 	long long values[2];
 
@@ -701,7 +701,7 @@ void execParallelFunctionWithTimeBullet2(void (*f)(int, int, double &), int lin,
 		// set num of thredas
 		omp_set_num_threads(threads);
 
-		for (int lin = 4096; lin <= 10240; lin += 2048)
+		for (int lin = 10240; lin <= 10240; lin += 2048)
 		{
 			for (int i = 0; i < 30; i++)
 			{
