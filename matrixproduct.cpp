@@ -157,7 +157,7 @@ void OnMultLine(int m_ar, int m_br, double &timeTaken)
 	cout << endl;
 	timeTaken = end - start;
 	*/
-
+	timeTaken = end - start;
 	free(pha);
 	free(phb);
 	free(phc);
@@ -772,7 +772,8 @@ void handleTestCases(int EventSet)
 	// Execute tree times each function that is called
 	int lin, col, blockSize, ret;
 	double timeTaken;
-
+	/*
+	
 	// Handle Bullet point 1 Serial Mult
 	printf("Starting onMult function ... \n");
 	execFunctionWithTimeBullet1_2(&OnMult, lin, col, timeTaken, EventSet, "Normal Mult");
@@ -790,11 +791,12 @@ void handleTestCases(int EventSet)
 	printf("Starting OnMultLineParallelized function ... \n");
 	execParallelFunctionWithTimeBullet1_2(&OnMultLineParallelized, lin, col, timeTaken, EventSet, "Parallelized Inline Mult");
 	printf("Finished OnMultLineParallelized function \n \n");
-
+	
 	// Handle Bullet point 2
 	printf("Starting OnMultLine point 2 ... \n");
 	execFunctionWithTimeBullet2(&OnMultLine, lin, col, timeTaken, EventSet, "Inline Mult");
 	printf("Finished OnMultLine point 2 \n\n");
+	*/
 
 	printf("Starting OnMultLineParallelized point 2 ... \n");
 	execParallelFunctionWithTimeBullet2(&OnMultLineParallelized, lin, col, timeTaken, EventSet, "Parallelized Inline Mult");
