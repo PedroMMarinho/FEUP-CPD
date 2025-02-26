@@ -321,7 +321,7 @@ func handleTestCases() {
 func testFunc( f func(int) float64, n int) {
 	avg := 0.0
 
-	for i:= 0; i < 3 ; i++{
+	for i:= 0; i < 30 ; i++{
 		avg += f(n)
 	}
 
@@ -336,7 +336,7 @@ func testBlockFunc(f func(int,int) float64, n int, bkSize int) {
 
 	avg := 0.0
 
-	for i:= 0; i < 3; i++ {
+	for i:= 0; i < 30; i++ {
 		avg += f(n,bkSize)
 	}
 
