@@ -153,6 +153,8 @@ public class MatrixProduct {
 
         double time = (end - start) / 1e9;
 
+        /*
+
         System.out.println("Time: " + time + " seconds");
 
         System.out.println("Result Matrix: ");
@@ -161,6 +163,7 @@ public class MatrixProduct {
             for (int j = 0; j < Math.min(10, dimensions); j++)
                 System.out.println(matrixC[j]);
         }
+         */
 
         return time;
     }
@@ -294,8 +297,9 @@ public class MatrixProduct {
     private static void handleTestCases(){
 
         try{
-            FileWriter file = new FileWriter("output/data_java.csv", true);
+            FileWriter file = new FileWriter("docs/data_java.csv", true);
 
+            /*
             System.out.print("== Normal multiplication tests ==");
 
             for (int n = 600; n<=3000; n+=400)
@@ -308,8 +312,8 @@ public class MatrixProduct {
             }
 
             System.out.println("Complete");
+            */
 
-            /*
             System.out.print("== Inline multiplication tests ==");
 
             for (int n = 600; n<=3000; n+=400)
@@ -323,7 +327,7 @@ public class MatrixProduct {
             }
 
             System.out.println("Complete");
-
+            /*
             System.out.print("== Block multiplication tests ==");
 
             for (int n = 4096; n<=10240; n+=2048)
