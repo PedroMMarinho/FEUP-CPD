@@ -692,7 +692,7 @@ void execFunctionWithTimeBullet2(void (*f)(int, int, double &), int lin, int col
 // 4096x4096 -> 10240x10240 interval 2048 Parallel
 void execParallelFunctionWithTimeBullet2(void (*f)(int, int, double &), int lin, int col, double timeTaken, int EventSet, string funcType)
 {
-	int numThreads[4] = {12, 24};
+	int numThreads[4] = {4, 8, 12, 24};
 	int ret;
 	long long values[2];
 
@@ -798,9 +798,9 @@ void handleTestCases(int EventSet)
 	printf("Finished OnMultLine point 2 \n\n");
 	*/
 
-	printf("Starting OnMultLineParallelized point 2 ... \n");
-	execParallelFunctionWithTimeBullet2(&OnMultLineParallelized, lin, col, timeTaken, EventSet, "Parallelized Inline Mult");
-	printf("Starting OnMultLineParallelized point 2 \n \n");
+	//printf("Starting OnMultLineParallelized point 2 ... \n");
+	//execParallelFunctionWithTimeBullet2(&OnMultLineParallelized, lin, col, timeTaken, EventSet, "Parallelized Inline Mult");
+	//printf("Starting OnMultLineParallelized point 2 \n \n");
 
 	// Handle Bullet point 3
 
