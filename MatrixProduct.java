@@ -1,9 +1,21 @@
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Scanner;
 
 public class MatrixProduct {
     public static void main(String[] args) {
 
         Scanner scanner = new Scanner(System.in);
+
+        if (args.length > 0) {
+            if (args[0].equals("test"))
+            {
+                handleTestCases();
+                return;
+            }
+        } else {
+            System.out.println("No arguments provided.");
+        }
 
         while (true)
         {
@@ -13,7 +25,7 @@ public class MatrixProduct {
             System.out.println("0. Exit Program");
             System.out.println("Selection?: ");
 
-            Integer op = scanner.nextInt();
+            int op = scanner.nextInt();
 
             if (op == 0) break;
 
@@ -46,7 +58,7 @@ public class MatrixProduct {
         System.out.println("2. Block Matrix Multiplication with Inline Multiplication");
         System.out.println("Selection?: ");
 
-        Integer op = scanner.nextInt();
+        int op = scanner.nextInt();
 
         switch (op)
         {
@@ -62,7 +74,7 @@ public class MatrixProduct {
 
     }
 
-    private static void OnMult(Integer dimensions)
+    private static double OnMult(Integer dimensions)
     {
         double[] matrixA = new double[dimensions * dimensions];
         double[] matrixB = new double[dimensions * dimensions];
@@ -98,18 +110,13 @@ public class MatrixProduct {
 
         double time = (end - start) / 1e9;
 
-        System.out.println("Time: " + time + " seconds");
 
-        System.out.println("Result Matrix: ");
-        for (int i = 0; i < 1; i++)
-        {
-            for (int j = 0; j < Math.min(10, dimensions); j++)
-                System.out.println(matrixC[j]);
-        }
+
+        return time;
     }
 
 
-    private static void OnMultLine(Integer dimensions)
+    private static double OnMultLine(Integer dimensions)
     {
 
         double[] matrixA = new double[dimensions * dimensions];
@@ -154,10 +161,12 @@ public class MatrixProduct {
             for (int j = 0; j < Math.min(10, dimensions); j++)
                 System.out.println(matrixC[j]);
         }
+
+        return time;
     }
 
 
-    private static void OnMultBlock(Integer dimensions, Integer bkSize)
+    private static double OnMultBlock(Integer dimensions, Integer bkSize)
     {
 
         double[] matrixA = new double[dimensions * dimensions];
@@ -216,10 +225,12 @@ public class MatrixProduct {
             for (int j = 0; j < Math.min(10, dimensions); j++)
                 System.out.println(matrixC[j]);
         }
+
+        return time;
     }
 
 
-    private static void OnMultBlockLine(Integer dimensions, Integer bkSize)
+    private static double OnMultBlockLine(Integer dimensions, Integer bkSize)
     {
 
         double[] matrixA = new double[dimensions * dimensions];
@@ -276,5 +287,84 @@ public class MatrixProduct {
             for (int j = 0; j < Math.min(10, dimensions); j++)
                 System.out.println(matrixC[j]);
         }
+
+        return time;
     }
+
+    private static void handleTestCases(){
+
+        try{
+            FileWriter file = new FileWriter("output/data_java.csv", true);
+
+            System.out.print("== Normal multiplication tests ==");
+
+            for (int n = 600; n<=3000; n+=400)
+            {
+                double totalTime = 0;
+                for(int i=0; i<=30; i++){
+                    totalTime += OnMult(n);
+                }
+                file.write("Normal Mult " + n + " " + totalTime/30 + "\n");
+            }
+
+            System.out.println("Complete");
+
+            /*
+            System.out.print("== Inline multiplication tests ==");
+
+            for (int n = 600; n<=3000; n+=400)
+            {
+                double totalTime = 0;
+                for(int i=0; i<=30; i++){
+                    totalTime += OnMultLine(n);
+                }
+                file.write("Inline Mult " + n + " " + totalTime/30 + "\n");
+
+            }
+
+            System.out.println("Complete");
+
+            System.out.print("== Block multiplication tests ==");
+
+            for (int n = 4096; n<=10240; n+=2048)
+            {
+                for (int bksize = 128; bksize<=512; bksize+= bksize)
+                {
+                    double totalTime = 0;
+                    for(int i=0; i<=30; i++) {
+                        totalTime += OnMultBlock(n, bksize);
+
+                        file.write("Block Mult " + n + " " + bksize + " " + time);
+                    }
+                    file.write("Block Mult " + n + " " + bkSize + " " + totalTime/30 + "\n");
+                }
+            }
+
+            System.out.println("Complete");
+
+            System.out.print("== Block Line multiplication tests ==");
+
+            for (int n = 4096; n<=10240; n+=2048)
+            {
+                for (int bksize = 128; bksize<=512; bksize+= bksize)
+                {
+                    for(int i=0; i<=30; i++) {
+                        double time = OnMultBlockLine(n, bksize);
+
+                        file.write("Inline Block Mult " + n + " " + bksize + " " + time);
+                    }
+                }
+            }
+
+            System.out.println("Complete");
+            */
+            file.close();
+        }
+        catch (IOException e){
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+    }
+
+
 }
