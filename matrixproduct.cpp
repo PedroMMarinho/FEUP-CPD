@@ -234,7 +234,7 @@ void OnMultBlockInline(int m_ar, int m_br, int bkSize, double &timeTaken)
 	}
 	cout << endl;
 	*/
-	timeTaken = start - end;
+	timeTaken = end - start;
 	free(pha);
 	free(phb);
 	free(phc);
@@ -312,7 +312,7 @@ void OnMultBlock(int m_ar, int m_br, int bkSize, double &timeTaken)
 	}
 	cout << endl;
 	*/
-	timeTaken = start - end;
+	timeTaken = end - start;
 	free(pha);
 	free(phb);
 	free(phc);
