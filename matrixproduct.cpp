@@ -385,6 +385,74 @@ void OnMultParallelized(int m_ar, int m_br, double &timeTaken)
 	free(phc);
 }
 
+void OnMultParallelizedInnerMostLoop(int m_ar, int m_br, double &timeTaken)
+{
+
+	SYSTEMTIME Time1, Time2;
+	double start, end;
+
+	char st[100];
+	double temp;
+	int i, j, k;
+
+	double *pha, *phb, *phc;
+
+	pha = (double *)malloc((m_ar * m_ar) * sizeof(double));
+	phb = (double *)malloc((m_ar * m_ar) * sizeof(double));
+	phc = (double *)malloc((m_ar * m_ar) * sizeof(double));
+
+	for (i = 0; i < m_ar; i++)
+		for (j = 0; j < m_ar; j++)
+			pha[i * m_ar + j] = (double)1.0;
+
+	for (i = 0; i < m_br; i++)
+		for (j = 0; j < m_br; j++)
+			phb[i * m_br + j] = (double)(i + 1);
+
+	Time1 = clock();
+	start = omp_get_wtime();
+
+	#pragma omp parallel for private(i, j, temp)
+	for (i = 0; i < m_ar; i++)
+	{
+		for (j = 0; j < m_br; j++)
+		{
+			temp = 0;
+			#pragma omp parallel for reduction(+:temp)
+			for (k = 0; k < m_ar; k++)
+			{
+				temp += pha[i * m_ar + k] * phb[k * m_br + j];
+			}
+			phc[i * m_ar + j] = temp;
+		}
+	}
+	
+
+	end = omp_get_wtime();
+	Time2 = clock();
+	// sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
+	// cout << st;
+
+	// display 10 elements of the result matrix tto verify correctness
+	/*
+	cout << "Result matrix: " << endl;
+	for (i = 0; i < 1; i++)
+	{
+		for (j = 0; j < min(10, m_br); j++)
+			cout << phc[j] << " ";
+	}
+	cout << endl;
+	*/
+
+	double gflops = (2.0 * m_ar * m_ar * m_br) / ((end - start) * 1e6);
+	// printf("Performance: %.2f MFLOPS\n", gflops);
+	timeTaken = end - start;
+	free(pha);
+	free(phb);
+	free(phc);
+}
+
+
 // 2.2 Parallel version using inline matrix product
 
 void OnMultLineParallelized(int m_ar, int m_br, double &timeTaken)
@@ -572,6 +640,7 @@ void handleParallelizationOption(int lin, int col)
 	int op;
 	cout << "1. Normal Matrix Product" << endl;
 	cout << "2. Inline Matrix Product" << endl;
+	cout << "3. InnerMost Loop Parallelization" << endl;
 	cout << "Selection?: ";
 	cin >> op;
 	double _;
@@ -582,6 +651,9 @@ void handleParallelizationOption(int lin, int col)
 		break;
 	case 2:
 		OnMultLineParallelized(lin, col, _);
+		break;
+	case 3:
+		OnMultParallelizedInnerMostLoop(lin, col, _);
 		break;
 	default:
 		cout << "Invalid Input" << endl;
