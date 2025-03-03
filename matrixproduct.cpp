@@ -877,7 +877,7 @@ void handleTestCases(int EventSet)
 	// Handle Bullet point 3
 
 	printf("Starting OnMultBlockInline ...\n");
-	execFunctionWithBlockSize(&OnMultBlockInline, lin, col, EventSet, "Inline Block Mult");
+	//execFunctionWithBlockSize(&OnMultBlockInline, lin, col, EventSet, "Inline Block Mult");
 	printf("Finished OnMultBlockInline \n\n");
 	// Possibly unfeasible
 	printf("Starting OnMultBlock ... \n");
