@@ -805,7 +805,7 @@ void execFunctionWithBlockSize(void (*f)(int, int, int, double &), int lin, int 
 {
 	int ret;
 	long long values[2];
-	int blockSizes[3] = {128, 256, 512};
+	int blockSizes[3] = {512};
 
 	double timeTaken;
 
