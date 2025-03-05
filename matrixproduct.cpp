@@ -412,7 +412,7 @@ void OnMultParallelizedInnerMostLoop(int m_ar, int m_br, double &timeTaken)
 	Time1 = clock();
 	start = omp_get_wtime();
 
-	#pragma omp parallel for private(i, j, temp)
+	#pragma omp parallel private(i, j, temp)
 	for (i = 0; i < m_ar; i++)
 	{
 		for (j = 0; j < m_br; j++)
@@ -839,6 +839,8 @@ void execFunctionWithBlockSize(void (*f)(int, int, int, double &), int lin, int 
 	}
 }
 
+void execFuntionParallelizedInnerMostLoop(){}
+
 void handleTestCases(int EventSet)
 {
 	// Execute tree times each function that is called
@@ -881,8 +883,12 @@ void handleTestCases(int EventSet)
 	printf("Finished OnMultBlockInline \n\n");
 	// Possibly unfeasible
 	printf("Starting OnMultBlock ... \n");
-	execFunctionWithBlockSize(&OnMultBlock, lin, col, EventSet, "Block Mult");
+	//execFunctionWithBlockSize(&OnMultBlock, lin, col, EventSet, "Block Mult");
 	printf("Finished OnMultBlock \n\n");
+
+	execParallelFunctionWithTimeBullet1_2(&OnMultParallelizedInnerMostLoop, lin, col, timeTaken, EventSet, "Inner Most Loop Parallelization");
+	
+	execParallelFunctionWithTimeBullet2(&OnMultParallelizedInnerMostLoop, lin, col, timeTaken, EventSet, "Inner Most Loop Parallelization");
 
 	ret = PAPI_remove_event(EventSet, PAPI_L1_DCM);
 	if (ret != PAPI_OK)
