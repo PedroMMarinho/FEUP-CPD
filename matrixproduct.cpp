@@ -704,7 +704,7 @@ void execParallelFunctionWithTimeBullet1_2(void (*f)(int, int, double &), int li
 		// set num of thredas
 		omp_set_num_threads(threads);
 
-		for (int lin = 600; lin <= 3000; lin += 400)
+		for (int lin = 2600; lin <= 3000; lin += 400)
 		{
 			for (int i = 0; i < 30; i++)
 			{
@@ -886,9 +886,9 @@ void handleTestCases(int EventSet)
 	//execFunctionWithBlockSize(&OnMultBlock, lin, col, EventSet, "Block Mult");
 	printf("Finished OnMultBlock \n\n");
 
-	//execParallelFunctionWithTimeBullet1_2(&OnMultParallelizedInnerMostLoop, lin, col, timeTaken, EventSet, "Inner Most Loop Parallelization");
+	execParallelFunctionWithTimeBullet1_2(&OnMultParallelizedInnerMostLoop, lin, col, timeTaken, EventSet, "Inner Most Loop Parallelization");
 	
-	//execParallelFunctionWithTimeBullet2(&OnMultParallelizedInnerMostLoop, lin, col, timeTaken, EventSet, "Inner Most Loop Parallelization");
+	execParallelFunctionWithTimeBullet2(&OnMultParallelizedInnerMostLoop, lin, col, timeTaken, EventSet, "Inner Most Loop Parallelization");
 
 	
 	ret = PAPI_remove_event(EventSet, PAPI_L1_DCM);
