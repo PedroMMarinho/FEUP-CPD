@@ -1,6 +1,6 @@
 Csv Rows:
 
-functionType- ["Normal Mult", "Parallelized Normal Mult", "Inline Mult", "Parallelized Inline Mult", "Block Mult", "Inline Block Mult"]
+functionType- ["Normal Mult", "Parallelized Normal Mult", "Inline Mult", "Parallelized Inline Mult", "Block Mult", "Inline Block Mult", "Inner Most Loop Parallelization"]
 L2 DCM
 L1 DCM
 MatrixSize

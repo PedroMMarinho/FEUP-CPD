@@ -695,7 +695,7 @@ void execFunctionWithTimeBullet1_2(void (*f)(int, int, double &), int lin, int c
 // 600x600 -> 3000x3000 with threads
 void execParallelFunctionWithTimeBullet1_2(void (*f)(int, int, double &), int lin, int col, double timeTaken, int EventSet, string funcType)
 {
-	int numThreads[4] = {4, 8, 12, 24};
+	int numThreads[4] = {24};
 	int ret;
 	long long values[2];
 
@@ -805,14 +805,14 @@ void execFunctionWithBlockSize(void (*f)(int, int, int, double &), int lin, int 
 {
 	int ret;
 	long long values[2];
-	int blockSizes[3] = {512};
+	int blockSizes[3] = {128, 256, 512};
 
 	double timeTaken;
 
 	for (int blockSize : blockSizes)
 	{
 
-		for (int lin = 4096; lin <= 10240; lin += 2048)
+		for (int lin = 600; lin <= 3000; lin += 400)
 		{
 			for (int i = 0; i < 30; i++)
 			{
@@ -886,10 +886,11 @@ void handleTestCases(int EventSet)
 	//execFunctionWithBlockSize(&OnMultBlock, lin, col, EventSet, "Block Mult");
 	printf("Finished OnMultBlock \n\n");
 
-	execParallelFunctionWithTimeBullet1_2(&OnMultParallelizedInnerMostLoop, lin, col, timeTaken, EventSet, "Inner Most Loop Parallelization");
+	//execParallelFunctionWithTimeBullet1_2(&OnMultParallelizedInnerMostLoop, lin, col, timeTaken, EventSet, "Inner Most Loop Parallelization");
 	
-	execParallelFunctionWithTimeBullet2(&OnMultParallelizedInnerMostLoop, lin, col, timeTaken, EventSet, "Inner Most Loop Parallelization");
+	//execParallelFunctionWithTimeBullet2(&OnMultParallelizedInnerMostLoop, lin, col, timeTaken, EventSet, "Inner Most Loop Parallelization");
 
+	
 	ret = PAPI_remove_event(EventSet, PAPI_L1_DCM);
 	if (ret != PAPI_OK)
 		std::cout << "FAIL remove event" << endl;
