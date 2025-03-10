@@ -305,10 +305,13 @@ public class MatrixProduct {
             for (int n = 600; n<=3000; n+=400)
             {
                 double totalTime = 0;
+                double time;
                 for(int i=0; i<=30; i++){
-                    totalTime += OnMult(n);
+                    time = OnMult(n);
+                    totalTime += time;
+                    file.write("Normal Mult " + n + " " + time + "\n");
                 }
-                file.write("Normal Mult " + n + " " + totalTime/30 + "\n");
+                file.write("Normal Mult " + n + " AVG: " + totalTime/30 + "\n");
             }
 
             System.out.println("Complete");
@@ -319,14 +322,19 @@ public class MatrixProduct {
             for (int n = 600; n<=3000; n+=400)
             {
                 double totalTime = 0;
+                double time;
                 for(int i=0; i<=30; i++){
-                    totalTime += OnMultLine(n);
+                    time = OnMultLine(n);
+                    totalTime += time;
+                    file.write("Inline Mult " + n + " " + time + "\n");
+
                 }
                 file.write("Inline Mult " + n + " " + totalTime/30 + "\n");
 
             }
 
             System.out.println("Complete");
+
             /*
             System.out.print("== Block multiplication tests ==");
 
