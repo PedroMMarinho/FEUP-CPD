@@ -43,6 +43,7 @@ func OnMult(n int) float64{
 
 	elapsed := end.Sub(start).Seconds()
 
+	/*
 	fmt.Println("Time: ", elapsed, " seconds")
 	fmt.Println("Result matrix: ")
 	for i := 0; i < 1; i++ {
@@ -51,7 +52,7 @@ func OnMult(n int) float64{
 		}
 	}
 	fmt.Println()
-
+	*/
 	return elapsed
 
 }
@@ -93,7 +94,7 @@ func OnMultLine(n int) float64 {
 	end := time.Now()
 
 	elapsed := end.Sub(start).Seconds()
-
+	/*
 	fmt.Println("Time: ", elapsed, " seconds")
 	fmt.Println("Result matrix: ")
 	for i := 0; i < 1; i++ {
@@ -102,7 +103,7 @@ func OnMultLine(n int) float64 {
 		}
 	}
 	fmt.Println()
-
+	*/
 	return elapsed
 }
 
@@ -285,19 +286,30 @@ func main() {
 }
 
 func handleTestCases() {
+
+	file, err := os.OpenFile("../docs/data_go.csv", os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	defer file.Close()
+
+	
 	fmt.Print("== Normal multiplication tests ==")
 	for n:= 600; n <= 3000; n += 400{
-		testFunc(OnMult,n)
+		testFunc(file, OnMult,"Normal Mult",n)
 	}
 	fmt.Println(" Complete!")
-
-
+	
+	
 	fmt.Print("== Line multiplication tests ==")
 	for n := 600; n <= 3000; n+= 400{
-		testFunc(OnMultLine,n)
+		testFunc(file, OnMultLine,"Inline Mult",n)
 	}
 	fmt.Println(" Complete!")
+	
 
+	/*
 	fmt.Print("== Normal Block multiplication tests ==")
 	for n := 4096; n <= 10240; n+= 2048{
 		for bkSize := 128; bkSize <= 512; bkSize*=2{
@@ -306,7 +318,6 @@ func handleTestCases() {
 	}
 	fmt.Println(" Complete!")
 
-
 	fmt.Print("== Block multiplication with Inline Multiplication tests ==")
 	for n := 4096; n <= 10240; n+= 2048{
 		for bkSize := 128; bkSize <= 512; bkSize*=2{
@@ -314,21 +325,33 @@ func handleTestCases() {
 		}
 	}
 	fmt.Println(" Complete!")
-
+	*/
 
 }
 
-func testFunc( f func(int) float64, n int) {
+func testFunc(file *os.File, f func(int) float64, funcName string, n int) {
 	avg := 0.0
 
 	for i:= 0; i < 30 ; i++{
-		avg += f(n)
+		t:= f(n)
+		avg += t
+
+		line := fmt.Sprintf("%s,%d,%.6f\n", funcName, n, t)
+
+		_, err := file.WriteString(line)
+		if err != nil {
+			fmt.Println("Error:", err)
+		}
+	
 	}
 
-	avg /= 3 
+	avg /= 30
 
-	// put here code for csv
-
+	avgLine := fmt.Sprintf("%s,%d,Average,%.6f\n\n", funcName, n, avg)
+	_, err := file.WriteString(avgLine)
+	if err != nil {
+		fmt.Println("Error writing average:", err)
+	}
 
 }
 
