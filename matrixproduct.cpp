@@ -769,7 +769,7 @@ void execFunctionWithTimeBullet1_2(void (*f)(int, int, double &), int lin, int c
 // 600x600 -> 3000x3000 with threads
 void execParallelFunctionWithTimeBullet1_2(void (*f)(int, int, double &), int lin, int col, double timeTaken, int EventSet, string funcType)
 {
-	int numThreads[4] = {24};
+	int numThreads[4] = {4, 8, 12, 24};
 	int ret;
 	long long values[2];
 
@@ -778,7 +778,7 @@ void execParallelFunctionWithTimeBullet1_2(void (*f)(int, int, double &), int li
 		// set num of thredas
 		omp_set_num_threads(threads);
 
-		for (int lin = 2600; lin <= 3000; lin += 400)
+		for (int lin = 600; lin <= 3000; lin += 400)
 		{
 			for (int i = 0; i < 30; i++)
 			{
@@ -960,9 +960,9 @@ void handleTestCases(int EventSet)
 	//execFunctionWithBlockSize(&OnMultBlock, lin, col, EventSet, "Block Mult");
 	printf("Finished OnMultBlock \n\n");
 
-	execParallelFunctionWithTimeBullet1_2(&OnMultParallelizedInnerMostLoop, lin, col, timeTaken, EventSet, "Inner Most Loop Parallelization");
+	execParallelFunctionWithTimeBullet1_2(&OnMultLineParallelizedInnerMost, lin, col, timeTaken, EventSet, "Inner Most Loop Parallelization Inline");
 	
-	execParallelFunctionWithTimeBullet2(&OnMultParallelizedInnerMostLoop, lin, col, timeTaken, EventSet, "Inner Most Loop Parallelization");
+	execParallelFunctionWithTimeBullet2(&OnMultLineParallelizedInnerMost, lin, col, timeTaken, EventSet, "Inner Most Loop Parallelization Inline");
 
 	
 	ret = PAPI_remove_event(EventSet, PAPI_L1_DCM);
