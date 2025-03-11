@@ -21,31 +21,23 @@ df_non_parallel["Mflops_Normalized"] = df_non_parallel.groupby("functionType")["
 )
 
 # Create a figure with multiple subplots
-fig, axes = plt.subplots(2, 2, figsize=(16, 12))
+fig, axes = plt.subplots(1, 2, figsize=(16, 6))
 fig.suptitle("Normal Mult: Normalized Performance Analysis", fontsize=16)
 
 # Focus on "Normal Mult" function
 normal_mult_data = df_non_parallel[df_non_parallel["functionType"] == "Normal Mult"]
 
 # 1. Box plot
-ax1 = axes[0, 0]
+ax1 = axes[0]
 sns.boxplot(x="MatrixSize", y="Mflops_Normalized", data=normal_mult_data, ax=ax1)
 ax1.set_title("Box Plot: Distribution of Normalized Mflops by Matrix Size")
 ax1.set_xlabel("Matrix Size")
 ax1.set_ylabel("Normalized Mflops")
 ax1.grid(True)
 
-# 2. Mean with error bars
-ax2 = axes[0, 1]
-mean_data = normal_mult_data.groupby("MatrixSize")["Mflops_Normalized"].agg(['mean', 'std']).reset_index()
-ax2.errorbar(mean_data["MatrixSize"], mean_data["mean"], yerr=mean_data["std"], marker='o', linestyle='-', capsize=5)
-ax2.set_title("Mean Normalized Mflops with Standard Deviation")
-ax2.set_xlabel("Matrix Size")
-ax2.set_ylabel("Mean Normalized Mflops")
-ax2.grid(True)
 
 # 3. Scatter with trend line
-ax3 = axes[1, 0]
+ax3 = axes[1]
 ax3.scatter(normal_mult_data["MatrixSize"], normal_mult_data["Mflops_Normalized"], alpha=0.5)
 
 # Add trend line
@@ -57,43 +49,30 @@ ax3.set_xlabel("Matrix Size")
 ax3.set_ylabel("Normalized Mflops")
 ax3.grid(True)
 
-# 4. Violin plot
-ax4 = axes[1, 1]
-sns.violinplot(x="MatrixSize", y="Mflops_Normalized", data=normal_mult_data, ax=ax4)
-ax4.set_title("Violin Plot: Distribution of Normalized Mflops by Matrix Size")
-ax4.set_xlabel("Matrix Size")
-ax4.set_ylabel("Normalized Mflops")
-ax4.grid(True)
 
 plt.tight_layout(rect=[0, 0, 1, 0.95])
-#plt.savefig("graphic_data/MFLOP_NORMAL_MULT.png", dpi=300, bbox_inches="tight")
+
+plt.savefig("graphic_data/MFLOP_NORMAL_MULT.png", dpi=300, bbox_inches="tight")
 plt.close()
+
 
 inline_mult_data = df_non_parallel[df_non_parallel["functionType"] == "Inline Mult"]
 
 # Create a figure with multiple subplots
-fig, axes = plt.subplots(2, 2, figsize=(16, 12))
+fig, axes = plt.subplots(2, 2, figsize=(16, 6))
 fig.suptitle("Inline Mult: Normalized Performance Analysis", fontsize=16)
 
 # 1. Box plot
-ax1 = axes[0, 0]
+ax1 = axes[0]
 sns.boxplot(x="MatrixSize", y="Mflops_Normalized", data=inline_mult_data, ax=ax1)
 ax1.set_title("Box Plot: Distribution of Normalized Mflops by Matrix Size")
 ax1.set_xlabel("Matrix Size")
 ax1.set_ylabel("Normalized Mflops")
 ax1.grid(True)
 
-# 2. Mean with error bars
-ax2 = axes[0, 1]
-mean_data = inline_mult_data.groupby("MatrixSize")["Mflops_Normalized"].agg(['mean', 'std']).reset_index()
-ax2.errorbar(mean_data["MatrixSize"], mean_data["mean"], yerr=mean_data["std"], marker='o', linestyle='-', capsize=5)
-ax2.set_title("Mean Normalized Mflops with Standard Deviation")
-ax2.set_xlabel("Matrix Size")
-ax2.set_ylabel("Mean Normalized Mflops")
-ax2.grid(True)
 
 # 3. Scatter with trend line
-ax3 = axes[1, 0]
+ax3 = axes[1]
 ax3.scatter(inline_mult_data["MatrixSize"], inline_mult_data["Mflops_Normalized"], alpha=0.5)
 
 # Add trend line
@@ -105,17 +84,10 @@ ax3.set_xlabel("Matrix Size")
 ax3.set_ylabel("Normalized Mflops")
 ax3.grid(True)
 
-# 4. Violin plot
-ax4 = axes[1, 1]
-sns.violinplot(x="MatrixSize", y="Mflops_Normalized", data=inline_mult_data, ax=ax4)
-ax4.set_title("Violin Plot: Distribution of Normalized Mflops by Matrix Size")
-ax4.set_xlabel("Matrix Size")
-ax4.set_ylabel("Normalized Mflops")
-ax4.grid(True)
 
 plt.tight_layout(rect=[0, 0, 1, 0.95])
 # Save the figure
-#plt.savefig("graphic_data/MFLOP_INLINE_MULT.png", dpi=300, bbox_inches="tight")
+plt.savefig("graphic_data/MFLOP_INLINE_MULT.png", dpi=300, bbox_inches="tight")
 
 plt.close()
 
@@ -141,28 +113,19 @@ for function in ["Block Mult", "Inline Block Mult"]:
         block_size_data = block_data[block_data["BlockSize"] == block_size]
 
         # Create a figure with multiple subplots
-        fig, axes = plt.subplots(2, 2, figsize=(16, 12))
+        fig, axes = plt.subplots(2, 2, figsize=(16, 6))
         fig.suptitle(f"{function} - Block Size: {block_size} - Normalized Performance Analysis", fontsize=16)
 
         # 1. Box plot
-        ax1 = axes[0, 0]
+        ax1 = axes[0]
         sns.boxplot(x="MatrixSize", y="Mflops_Normalized", data=block_size_data, ax=ax1)
         ax1.set_title(f"Box Plot: Distribution of Normalized Mflops by Matrix Size")
         ax1.set_xlabel("Matrix Size")
         ax1.set_ylabel("Normalized Mflops")
         ax1.grid(True)
 
-        # 2. Mean with error bars
-        ax2 = axes[0, 1]
-        mean_data = block_size_data.groupby("MatrixSize")["Mflops_Normalized"].agg(['mean', 'std']).reset_index()
-        ax2.errorbar(mean_data["MatrixSize"], mean_data["mean"], yerr=mean_data["std"], marker='o', linestyle='-', capsize=5)
-        ax2.set_title(f"Mean Normalized Mflops with Standard Deviation")
-        ax2.set_xlabel("Matrix Size")
-        ax2.set_ylabel("Mean Normalized Mflops")
-        ax2.grid(True)
-
         # 3. Scatter with trend line
-        ax3 = axes[1, 0]
+        ax3 = axes[1]
         ax3.scatter(block_size_data["MatrixSize"], block_size_data["Mflops_Normalized"], alpha=0.5)
 
         # Add trend line
@@ -174,17 +137,9 @@ for function in ["Block Mult", "Inline Block Mult"]:
         ax3.set_ylabel("Normalized Mflops")
         ax3.grid(True)
 
-        # 4. Violin plot
-        ax4 = axes[1, 1]
-        sns.violinplot(x="MatrixSize", y="Mflops_Normalized", data=block_size_data, ax=ax4)
-        ax4.set_title(f"Violin Plot: Distribution of Normalized Mflops by Matrix Size")
-        ax4.set_xlabel("Matrix Size")
-        ax4.set_ylabel("Normalized Mflops")
-        ax4.grid(True)
-
         plt.tight_layout(rect=[0, 0, 1, 0.95])
         # Save the figure if needed
-        #plt.savefig(f"graphic_data/MFLOP_{function.replace(' ', '_').upper()}_BLOCKSIZE_{block_size}.png", dpi=300, bbox_inches="tight")
+        plt.savefig(f"graphic_data/MFLOP_{function.replace(' ', '_').upper()}_BLOCKSIZE_{block_size}.png", dpi=300, bbox_inches="tight")
         plt.close()
 
 
@@ -192,7 +147,7 @@ for function in ["Block Mult", "Inline Block Mult"]:
 # Parallelized functions
 
 
-parallel_functions = ["Parallelized Normal Mult", "Parallelized Inline Mult"] # Need more data for "Inner Most Loop Parallelization" and "Inner Most Inline Loop Parallelization"
+parallel_functions = ["Parallelized Normal Mult", "Parallelized Inline Mult", "Inner Most Loop Parallelization", "Inner Most Loop Parallelization Inline"] # Need more data for "Inner Most Loop Parallelization" and "Inner Most Inline Loop Parallelization"
 
 # Filter the dataset for the parallelized functions
 df_parallel = df[df["functionType"].isin(parallel_functions)].copy()
@@ -217,28 +172,19 @@ for function in parallel_functions:
         thread_data = function_data[function_data["NumThreads"] == num_threads]
 
         # Create a figure with multiple subplots
-        fig, axes = plt.subplots(2, 2, figsize=(16, 12))
+        fig, axes = plt.subplots(2, 2, figsize=(16, 6))
         fig.suptitle(f"{function} - NumThreads: {num_threads} - Normalized Performance Analysis", fontsize=16)
 
         # 1. Box plot
-        ax1 = axes[0, 0]
+        ax1 = axes[0]
         sns.boxplot(x="MatrixSize", y="Mflops_Normalized", data=thread_data, ax=ax1)
         ax1.set_title(f"Box Plot: Distribution of Normalized Mflops by Matrix Size")
         ax1.set_xlabel("Matrix Size")
         ax1.set_ylabel("Normalized Mflops")
         ax1.grid(True)
 
-        # 2. Mean with error bars
-        ax2 = axes[0, 1]
-        mean_data = thread_data.groupby("MatrixSize")["Mflops_Normalized"].agg(['mean', 'std']).reset_index()
-        ax2.errorbar(mean_data["MatrixSize"], mean_data["mean"], yerr=mean_data["std"], marker='o', linestyle='-', capsize=5)
-        ax2.set_title(f"Mean Normalized Mflops with Standard Deviation")
-        ax2.set_xlabel("Matrix Size")
-        ax2.set_ylabel("Mean Normalized Mflops")
-        ax2.grid(True)
-
         # 3. Scatter with trend line
-        ax3 = axes[1, 0]
+        ax3 = axes[1]
         ax3.scatter(thread_data["MatrixSize"], thread_data["Mflops_Normalized"], alpha=0.5)
 
         # Add trend line
@@ -250,16 +196,9 @@ for function in parallel_functions:
         ax3.set_ylabel("Normalized Mflops")
         ax3.grid(True)
 
-        # 4. Violin plot
-        ax4 = axes[1, 1]
-        sns.violinplot(x="MatrixSize", y="Mflops_Normalized", data=thread_data, ax=ax4)
-        ax4.set_title(f"Violin Plot: Distribution of Normalized Mflops by Matrix Size")
-        ax4.set_xlabel("Matrix Size")
-        ax4.set_ylabel("Normalized Mflops")
-        ax4.grid(True)
 
         plt.tight_layout(rect=[0, 0, 1, 0.95])
         # Save the figure if needed
-        #plt.savefig(f"graphic_data/MFLOP_{function.replace(' ', '_').upper()}_THREADS_{num_threads}.png", dpi=300, bbox_inches="tight")
+        plt.savefig(f"graphic_data/MFLOP_{function.replace(' ', '_').upper()}_THREADS_{num_threads}.png", dpi=300, bbox_inches="tight")
         plt.close()
 
