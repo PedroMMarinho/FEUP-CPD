@@ -59,7 +59,7 @@ plt.close()
 inline_mult_data = df_non_parallel[df_non_parallel["functionType"] == "Inline Mult"]
 
 # Create a figure with multiple subplots
-fig, axes = plt.subplots(2, 2, figsize=(16, 6))
+fig, axes = plt.subplots(1, 2, figsize=(16, 6))
 fig.suptitle("Inline Mult: Normalized Performance Analysis", fontsize=16)
 
 # 1. Box plot
@@ -113,7 +113,7 @@ for function in ["Block Mult", "Inline Block Mult"]:
         block_size_data = block_data[block_data["BlockSize"] == block_size]
 
         # Create a figure with multiple subplots
-        fig, axes = plt.subplots(2, 2, figsize=(16, 6))
+        fig, axes = plt.subplots(1, 2, figsize=(16, 6))
         fig.suptitle(f"{function} - Block Size: {block_size} - Normalized Performance Analysis", fontsize=16)
 
         # 1. Box plot
@@ -172,7 +172,7 @@ for function in parallel_functions:
         thread_data = function_data[function_data["NumThreads"] == num_threads]
 
         # Create a figure with multiple subplots
-        fig, axes = plt.subplots(2, 2, figsize=(16, 6))
+        fig, axes = plt.subplots(1, 2, figsize=(16, 6))
         fig.suptitle(f"{function} - NumThreads: {num_threads} - Normalized Performance Analysis", fontsize=16)
 
         # 1. Box plot

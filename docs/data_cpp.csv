@@ -5511,3 +5511,212 @@ Inner Most Loop Parallelization Inline,94056783,335999858,1800,-1,8,341.887
 Inner Most Loop Parallelization Inline,93487866,334729506,1800,-1,8,340.592
 Inner Most Loop Parallelization Inline,95116765,335260436,1800,-1,8,341.605
 Inner Most Loop Parallelization Inline,94136184,334627621,1800,-1,8,341.488
+Inner Most Loop Parallelization Inline,145696229,312826169,1800,-1,8,359.44
+Inner Most Loop Parallelization Inline,163506772,303283321,1800,-1,8,359.271
+Inner Most Loop Parallelization Inline,163874369,304622623,1800,-1,8,362.276
+Inner Most Loop Parallelization Inline,163096162,305285331,1800,-1,8,362.994
+Inner Most Loop Parallelization Inline,145462675,308805254,1800,-1,8,349.119
+Inner Most Loop Parallelization Inline,160408104,305427892,1800,-1,8,359.475
+Inner Most Loop Parallelization Inline,156361355,309010361,1800,-1,8,364.305
+Inner Most Loop Parallelization Inline,161187751,304896275,1800,-1,8,359.11
+Inner Most Loop Parallelization Inline,152908328,307229947,1800,-1,8,357.817
+Inner Most Loop Parallelization Inline,164433432,304489583,1800,-1,8,361.965
+Inner Most Loop Parallelization Inline,161362664,306511684,1800,-1,8,362.317
+Inner Most Loop Parallelization Inline,166718386,303816788,1800,-1,8,360.745
+Inner Most Loop Parallelization Inline,164930627,305461184,1800,-1,8,363.045
+Inner Most Loop Parallelization Inline,161317345,306958185,1800,-1,8,363.299
+Inner Most Loop Parallelization Inline,162734745,305606987,1800,-1,8,360.873
+Inner Most Loop Parallelization Inline,146288014,312520469,1800,-1,8,362.735
+Inner Most Loop Parallelization Inline,289889187,513121780,2200,-1,8,532.389
+Inner Most Loop Parallelization Inline,281095830,516392851,2200,-1,8,533.18
+Inner Most Loop Parallelization Inline,288130259,516222849,2200,-1,8,532.552
+Inner Most Loop Parallelization Inline,284847766,514593093,2200,-1,8,529.92
+Inner Most Loop Parallelization Inline,276860734,520387274,2200,-1,8,533.023
+Inner Most Loop Parallelization Inline,279854108,516664687,2200,-1,8,531.563
+Inner Most Loop Parallelization Inline,270673011,523227038,2200,-1,8,536.194
+Inner Most Loop Parallelization Inline,284186091,515017728,2200,-1,8,530.08
+Inner Most Loop Parallelization Inline,295235561,511783459,2200,-1,8,529.003
+Inner Most Loop Parallelization Inline,295015885,510349366,2200,-1,8,526.1
+Inner Most Loop Parallelization Inline,178202724,549712692,2200,-1,8,498.718
+Inner Most Loop Parallelization Inline,140991174,547683229,2200,-1,8,482.739
+Inner Most Loop Parallelization Inline,135939178,543857746,2200,-1,8,472.639
+Inner Most Loop Parallelization Inline,137141370,544634955,2200,-1,8,475.303
+Inner Most Loop Parallelization Inline,228149341,2830987608,4096,-1,4,18.2611
+Inner Most Loop Parallelization Inline,224693463,2813674198,4096,-1,4,17.9713
+Inner Most Loop Parallelization Inline,217641961,2905643294,4096,-1,4,17.805
+Inner Most Loop Parallelization Inline,215316957,2986478864,4096,-1,4,18.2425
+Inner Most Loop Parallelization Inline,224989679,2832487469,4096,-1,4,18.5241
+Inner Most Loop Parallelization Inline,209789184,3009731292,4096,-1,4,18.0748
+Inner Most Loop Parallelization Inline,225166693,2725918943,4096,-1,4,18.1203
+Inner Most Loop Parallelization Inline,226059277,2856732541,4096,-1,4,18.381
+Inner Most Loop Parallelization Inline,220600416,2850999912,4096,-1,4,18.4325
+Inner Most Loop Parallelization Inline,227178253,2877533670,4096,-1,4,18.8198
+Inner Most Loop Parallelization Inline,220572512,2931795667,4096,-1,4,19.3689
+Inner Most Loop Parallelization Inline,215836614,2965326765,4096,-1,4,18.3367
+Inner Most Loop Parallelization Inline,201445017,3075128637,4096,-1,4,18.4071
+Inner Most Loop Parallelization Inline,215776949,2906985644,4096,-1,4,18.439
+Inner Most Loop Parallelization Inline,219004196,2834115956,4096,-1,4,18.6752
+Inner Most Loop Parallelization Inline,213204072,2893832235,4096,-1,4,18.5299
+Inner Most Loop Parallelization Inline,214163344,2886439500,4096,-1,4,19.164
+Inner Most Loop Parallelization Inline,207606000,2941785229,4096,-1,4,18.4503
+Inner Most Loop Parallelization Inline,215012934,2900699068,4096,-1,4,18.6956
+Inner Most Loop Parallelization Inline,220763602,2944439176,4096,-1,4,19.9109
+Inner Most Loop Parallelization Inline,214515131,2967996410,4096,-1,4,18.6708
+Inner Most Loop Parallelization Inline,218050077,2957000740,4096,-1,4,19.0687
+Inner Most Loop Parallelization Inline,211658166,2961612740,4096,-1,4,18.9796
+Inner Most Loop Parallelization Inline,211127368,2912122808,4096,-1,4,18.7355
+Inner Most Loop Parallelization Inline,221729229,2873701930,4096,-1,4,18.6622
+Inner Most Loop Parallelization Inline,219391576,2876046700,4096,-1,4,19.2923
+Inner Most Loop Parallelization Inline,213821227,2992018707,4096,-1,4,19.8647
+Inner Most Loop Parallelization Inline,214492296,2946936350,4096,-1,4,18.572
+Inner Most Loop Parallelization Inline,214357665,3077285938,4096,-1,4,20.5683
+Inner Most Loop Parallelization Inline,219191325,2937214540,4096,-1,4,20.166
+Inner Most Loop Parallelization Inline,860068596,10522080757,6144,-1,4,56.1646
+Inner Most Loop Parallelization Inline,853288066,10730280782,6144,-1,4,57.2774
+Inner Most Loop Parallelization Inline,835963442,11021620416,6144,-1,4,60.5712
+Inner Most Loop Parallelization Inline,828072783,11027349012,6144,-1,4,58.6274
+Inner Most Loop Parallelization Inline,854108015,10633216429,6144,-1,4,57.6039
+Inner Most Loop Parallelization Inline,871684593,10533085494,6144,-1,4,57.1711
+Inner Most Loop Parallelization Inline,840911201,10610433566,6144,-1,4,54.4428
+Inner Most Loop Parallelization Inline,813702382,10971762312,6144,-1,4,56.9058
+Inner Most Loop Parallelization Inline,856400707,10409263688,6144,-1,4,55.2309
+Inner Most Loop Parallelization Inline,831162220,10852319483,6144,-1,4,56.2807
+Inner Most Loop Parallelization Inline,825939192,10867808516,6144,-1,4,55.9001
+Inner Most Loop Parallelization Inline,825164071,10559715442,6144,-1,4,55.4231
+Inner Most Loop Parallelization Inline,840496288,10728172569,6144,-1,4,56.2413
+Inner Most Loop Parallelization Inline,830337464,10966923159,6144,-1,4,58.0528
+Inner Most Loop Parallelization Inline,854921338,10695185465,6144,-1,4,57.1878
+Inner Most Loop Parallelization Inline,827613960,11066138763,6144,-1,4,57.5522
+Inner Most Loop Parallelization Inline,854878017,10681515046,6144,-1,4,57.6176
+Inner Most Loop Parallelization Inline,839557019,10795684989,6144,-1,4,57.9617
+Inner Most Loop Parallelization Inline,845562678,10662858365,6144,-1,4,56.2425
+Inner Most Loop Parallelization Inline,836857520,10856521117,6144,-1,4,57.7542
+Inner Most Loop Parallelization Inline,832107984,10940745599,6144,-1,4,58.405
+Inner Most Loop Parallelization Inline,826876641,10927611668,6144,-1,4,56.4283
+Inner Most Loop Parallelization Inline,823924339,10912320915,6144,-1,4,56.786
+Inner Most Loop Parallelization Inline,832401398,10901733645,6144,-1,4,55.6868
+Inner Most Loop Parallelization Inline,834759588,10784985788,6144,-1,4,56.5756
+Inner Most Loop Parallelization Inline,836492457,10743623308,6144,-1,4,56.6051
+Inner Most Loop Parallelization Inline,793160956,11151906409,6144,-1,4,56.2484
+Inner Most Loop Parallelization Inline,830881804,10792246731,6144,-1,4,55.115
+Inner Most Loop Parallelization Inline,785267536,10944383570,6144,-1,4,53.314
+Inner Most Loop Parallelization Inline,831640224,10541982819,6144,-1,4,54.4366
+Inner Most Loop Parallelization Inline,1337631378,29913504450,8192,-1,4,126.326
+Inner Most Loop Parallelization Inline,1378607539,29652852778,8192,-1,4,126.845
+Inner Most Loop Parallelization Inline,1318254238,30357586637,8192,-1,4,130.427
+Inner Most Loop Parallelization Inline,1271227584,30927629453,8192,-1,4,126.813
+Inner Most Loop Parallelization Inline,1353592002,30052893573,8192,-1,4,130.181
+Inner Most Loop Parallelization Inline,1378317414,29919227452,8192,-1,4,128.543
+Inner Most Loop Parallelization Inline,1375717600,29848109581,8192,-1,4,126.437
+Inner Most Loop Parallelization Inline,1364843557,29882506759,8192,-1,4,124.819
+Inner Most Loop Parallelization Inline,2006828221,69471703757,10240,-1,4,234.63
+Inner Most Loop Parallelization Inline,2874276616,69439332158,10240,-1,4,248.543
+Inner Most Loop Parallelization Inline,2016282875,69475585237,10240,-1,4,233.528
+Inner Most Loop Parallelization Inline,2827103321,69506677070,10240,-1,4,253.19
+Inner Most Loop Parallelization Inline,2024442024,69493962324,10240,-1,4,238.041
+Inner Most Loop Parallelization Inline,2890136630,69435016970,10240,-1,4,246.643
+Inner Most Loop Parallelization Inline,2031909179,69419711286,10240,-1,4,226.011
+Inner Most Loop Parallelization Inline,2884135139,69423931875,10240,-1,4,241.677
+Inner Most Loop Parallelization Inline,2054527678,69403425075,10240,-1,4,223.67
+Inner Most Loop Parallelization Inline,2881305606,69412498102,10240,-1,4,242.05
+Inner Most Loop Parallelization Inline,2020208315,69423596483,10240,-1,4,225.602
+Inner Most Loop Parallelization Inline,2903725494,69414401145,10240,-1,4,242.056
+Inner Most Loop Parallelization Inline,2029480683,69420364547,10240,-1,4,225.432
+Inner Most Loop Parallelization Inline,2877071882,69432578461,10240,-1,4,240.979
+Inner Most Loop Parallelization Inline,2022341848,69423950669,10240,-1,4,224.98
+Inner Most Loop Parallelization Inline,2859787460,69433716655,10240,-1,4,243.278
+Inner Most Loop Parallelization Inline,2017586575,69432545232,10240,-1,4,225.338
+Inner Most Loop Parallelization Inline,1051405393,2866541793,4096,-1,8,1743.91
+Parallelized Normal Mult,225804958,2931355068,4096,-1,4,19.2672
+Parallelized Normal Mult,230555259,2959433144,4096,-1,4,19.8598
+Parallelized Normal Mult,235973439,2902829556,4096,-1,4,20.1443
+Parallelized Normal Mult,233622765,2917785346,4096,-1,4,19.9111
+Parallelized Normal Mult,240020203,2881741820,4096,-1,4,20.0232
+Parallelized Normal Mult,240496654,2872356679,4096,-1,4,20.2651
+Parallelized Normal Mult,245807942,2866746801,4096,-1,4,19.7976
+Parallelized Normal Mult,241662901,2901175337,4096,-1,4,21.5585
+Parallelized Normal Mult,235867012,2876349175,4096,-1,4,20.1063
+Parallelized Normal Mult,241934440,2913979900,4096,-1,4,20.6405
+Parallelized Normal Mult,229473826,2951765568,4096,-1,4,20.0807
+Parallelized Normal Mult,227203276,2934602141,4096,-1,4,20.2878
+Parallelized Normal Mult,236613216,2910151186,4096,-1,4,19.5807
+Parallelized Normal Mult,236763969,2857435604,4096,-1,4,19.0373
+Parallelized Normal Mult,235518674,2890596570,4096,-1,4,18.9962
+Parallelized Normal Mult,234198524,2947479715,4096,-1,4,19.3295
+Parallelized Normal Mult,236058315,2906213233,4096,-1,4,19.0766
+Parallelized Normal Mult,235101492,2925884994,4096,-1,4,19.3664
+Parallelized Normal Mult,238119169,2904840193,4096,-1,4,19.3626
+Parallelized Normal Mult,244797578,2799146577,4096,-1,4,18.9989
+Parallelized Normal Mult,243052190,2886066959,4096,-1,4,19.4599
+Parallelized Normal Mult,235397438,2929499806,4096,-1,4,19.2121
+Parallelized Normal Mult,238392772,2903625174,4096,-1,4,19.1999
+Parallelized Normal Mult,240445324,2876933573,4096,-1,4,19.0767
+Parallelized Normal Mult,245268989,2877258456,4096,-1,4,19.6556
+Parallelized Normal Mult,236178770,2954036670,4096,-1,4,20.0221
+Parallelized Normal Mult,235871736,2973451644,4096,-1,4,20.6489
+Parallelized Normal Mult,232288159,2931686208,4096,-1,4,19.2893
+Parallelized Normal Mult,240808168,2944432856,4096,-1,4,20.4245
+Parallelized Normal Mult,240910694,2930978940,4096,-1,4,19.8918
+Parallelized Normal Mult,805408872,10807383017,6144,-1,4,62.3946
+Parallelized Normal Mult,1031016947,10695677426,6144,-1,4,63.894
+Parallelized Normal Mult,792853749,10871297712,6144,-1,4,61.7659
+Parallelized Normal Mult,1028364199,10853015244,6144,-1,4,67.0594
+Parallelized Normal Mult,811001266,10669807500,6144,-1,4,62.3096
+Parallelized Normal Mult,1031162569,10633735093,6144,-1,4,65.7242
+Parallelized Normal Mult,809706910,10737718844,6144,-1,4,65.3689
+Parallelized Normal Mult,1022300721,10735353706,6144,-1,4,65.205
+Parallelized Normal Mult,805716484,10599800716,6144,-1,4,60.6007
+Parallelized Normal Mult,1025870005,10726057169,6144,-1,4,65.5322
+Parallelized Normal Mult,805398493,10638968829,6144,-1,4,62.4164
+Parallelized Normal Mult,1056126100,10422591270,6144,-1,4,64.9404
+Parallelized Normal Mult,798353442,10598887399,6144,-1,4,61.576
+Parallelized Normal Mult,1031936851,10660589268,6144,-1,4,65.8246
+Parallelized Normal Mult,791652840,10762944786,6144,-1,4,62.9592
+Parallelized Normal Mult,1020816370,10687783189,6144,-1,4,64.9464
+Parallelized Normal Mult,808414675,10601981011,6144,-1,4,63.6922
+Parallelized Normal Mult,1022648607,10749804594,6144,-1,4,65.5584
+Parallelized Normal Mult,807614453,10617188882,6144,-1,4,64.0308
+Parallelized Normal Mult,1018702823,10679308798,6144,-1,4,66.9411
+Parallelized Normal Mult,800738364,10575164348,6144,-1,4,65.0329
+Parallelized Normal Mult,1011118221,10856734731,6144,-1,4,66.7978
+Parallelized Normal Mult,799786220,10739624886,6144,-1,4,64.7397
+Parallelized Normal Mult,1026822467,10669870448,6144,-1,4,65.9841
+Parallelized Normal Mult,788082287,10695424380,6144,-1,4,60.56
+Parallelized Normal Mult,1027166900,10575452799,6144,-1,4,63.3755
+Parallelized Normal Mult,792000439,10605725277,6144,-1,4,60.8252
+Parallelized Normal Mult,1014375530,10842382298,6144,-1,4,63.8676
+Parallelized Normal Mult,802507476,10507976235,6144,-1,4,60.1501
+Parallelized Normal Mult,1023391414,10767439397,6144,-1,4,63.702
+Parallelized Normal Mult,1870817289,30188930451,8192,-1,4,145.44
+Parallelized Normal Mult,1796031178,29950815264,8192,-1,4,143.238
+Parallelized Normal Mult,1874092705,30136677572,8192,-1,4,145.43
+Parallelized Normal Mult,1795542283,30025848871,8192,-1,4,142.038
+Parallelized Normal Mult,1894191879,29948161695,8192,-1,4,143.2
+Parallelized Normal Mult,1757864775,30166882061,8192,-1,4,137.409
+Parallelized Normal Mult,1880240492,29775576291,8192,-1,4,138.04
+Parallelized Normal Mult,1794388504,29861590154,8192,-1,4,140.737
+Parallelized Normal Mult,1902882775,29797905829,8192,-1,4,143.33
+Parallelized Normal Mult,1786146657,29936304938,8192,-1,4,141.188
+Parallelized Normal Mult,1919135213,29941932579,8192,-1,4,145.897
+Parallelized Normal Mult,1776471431,30024165069,8192,-1,4,141.789
+Parallelized Normal Mult,1890296825,30017905284,8192,-1,4,148.408
+Parallelized Normal Mult,1766970815,29929697993,8192,-1,4,136.141
+Parallelized Normal Mult,1872006225,29931731014,8192,-1,4,139.891
+Parallelized Normal Mult,1799129533,29936837773,8192,-1,4,141.434
+Parallelized Normal Mult,1884181151,30026856788,8192,-1,4,144.356
+Parallelized Normal Mult,1810438634,30038494314,8192,-1,4,149.256
+Parallelized Normal Mult,1907747765,29785815660,8192,-1,4,144.791
+Parallelized Normal Mult,1814379828,29816252865,8192,-1,4,141.708
+Parallelized Normal Mult,1906722089,29898183843,8192,-1,4,144.174
+Parallelized Normal Mult,1793219372,29828628959,8192,-1,4,135.995
+Parallelized Normal Mult,1934098916,30217401724,8192,-1,4,159.801
+Parallelized Normal Mult,1792767320,30057022705,8192,-1,4,140.668
+Parallelized Normal Mult,1867952400,29934867434,8192,-1,4,135.282
+Parallelized Normal Mult,1812527149,29833360165,8192,-1,4,140.303
+Parallelized Normal Mult,1900603791,30013608026,8192,-1,4,147.203
+Parallelized Normal Mult,1846810355,29942673850,8192,-1,4,153.686
+Parallelized Normal Mult,1908804662,29782912561,8192,-1,4,143.871
+Parallelized Normal Mult,1837747333,29826432307,8192,-1,4,147.269
+Parallelized Normal Mult,2690603834,69366319577,10240,-1,4,265.583
+Parallelized Normal Mult,3574480126,69350145718,10240,-1,4,289.084
+Parallelized Normal Mult,2663899197,69368124341,10240,-1,4,259.374
