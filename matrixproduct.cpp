@@ -586,7 +586,7 @@ void OnMultLineParallelizedInnerMost(int m_ar, int m_br, double &timeTaken)
 	// cout << st;
 
 	// display 10 elements of the result matrix tto verify correctness
-	/*~
+	/*
 	cout << "Result matrix: " << endl;
 	for (i = 0; i < 1; i++)
 	{
@@ -769,7 +769,7 @@ void execFunctionWithTimeBullet1_2(void (*f)(int, int, double &), int lin, int c
 // 600x600 -> 3000x3000 with threads
 void execParallelFunctionWithTimeBullet1_2(void (*f)(int, int, double &), int lin, int col, double timeTaken, int EventSet, string funcType)
 {
-	int numThreads[4] = {8, 12, 24};
+	int numThreads[4] = {4, 8, 12, 24};
 	int ret;
 	long long values[2];
 
@@ -912,8 +912,6 @@ void execFunctionWithBlockSize(void (*f)(int, int, int, double &), int lin, int 
 		}
 	}
 }
-
-void execFuntionParallelizedInnerMostLoop(){}
 
 void handleTestCases(int EventSet)
 {
