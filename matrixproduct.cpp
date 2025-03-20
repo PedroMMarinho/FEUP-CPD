@@ -646,8 +646,10 @@ void chooseBlockFunction(int lin, int col, int blockSize)
 void handleSerialVsParallel(int lin, int col, int EventSet)
 {
 	int op;
-	cout << "1. Normal Matrix Product" << endl;
-	cout << "2. Inline Matrix Product" << endl;
+	cout << "1. Outer loop Normal Multiplication" << endl;
+	cout << "2. Outer loop Inline Multiplication" << endl;
+	cout << "3. Inner loop Normal Multiplication" << endl;
+	cout << "4. Inner loop Inline Multiplication" << endl;
 	cout << "Selection?: ";
 	cin >> op;
 	int ret;
@@ -676,6 +678,28 @@ void handleSerialVsParallel(int lin, int col, int EventSet)
 		printf("Loading parallel function ...\n");
 		OnMultLineParallelized(lin, col, paralelTime);
 		break;
+	case 3:
+		printf("Loading serial function ...\n");
+		OnMultParallelized(lin, col, serialTime);
+		cout << endl;
+
+		papiResetAndPrintInfo(EventSet);
+		ret = PAPI_start(EventSet);
+
+		printf("Loading parallel function ...\n");
+		OnMultParallelizedInnerMostLoop(lin, col, paralelTime);
+		break;
+	case 4:
+		printf("Loading serial function ...\n");
+		OnMultLineParallelized(lin, col, serialTime);
+		cout << endl;
+
+		papiResetAndPrintInfo(EventSet);
+		ret = PAPI_start(EventSet);
+
+		printf("Loading parallel function ...\n");
+		OnMultLineParallelizedInnerMost(lin, col, paralelTime);
+		break;
 	default:
 		cout << "Invalid Input" << endl;
 		break;
@@ -689,9 +713,10 @@ void handleSerialVsParallel(int lin, int col, int EventSet)
 void handleParallelizationOption(int lin, int col)
 {
 	int op;
-	cout << "1. Normal Matrix Product" << endl;
-	cout << "2. Inline Matrix Product" << endl;
+	cout << "1. Outer Loop Parallelization" << endl;
+	cout << "2. Outer Loop Parallelization with Inline Matrix Product" << endl;
 	cout << "3. InnerMost Loop Parallelization" << endl;
+	cout << "4. Inline Matrix Product with InnerMost Loop Parallelization" << endl;
 	cout << "Selection?: ";
 	cin >> op;
 	double _;
@@ -705,6 +730,9 @@ void handleParallelizationOption(int lin, int col)
 		break;
 	case 3:
 		OnMultParallelizedInnerMostLoop(lin, col, _);
+		break;
+	case 4:
+		OnMultLineParallelizedInnerMost(lin, col, _);
 		break;
 	default:
 		cout << "Invalid Input" << endl;
