@@ -11,7 +11,7 @@ using namespace std;
 
 #define SYSTEMTIME clock_t
 
-// 1.1 - Multiplication of two matrices
+// 1.1 - Conventional Multiplication of two matrices
 void OnMult(int m_ar, int m_br, double &timeTaken)
 {
 
@@ -36,7 +36,6 @@ void OnMult(int m_ar, int m_br, double &timeTaken)
 		for (j = 0; j < m_br; j++)
 			phb[i * m_br + j] = (double)(i + 1);
 
-	Time1 = clock();
 	start = omp_get_wtime();
 	for (i = 0; i < m_ar; i++)
 	{
@@ -51,13 +50,10 @@ void OnMult(int m_ar, int m_br, double &timeTaken)
 		}
 	}
 	end = omp_get_wtime();
-	Time2 = clock();
 
-	// sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
-	// cout << st;
-
+	sprintf(st, "Time: %3.3f seconds\n", (double)(end - start));
+	cout << st;
 	// display 10 elements of the result matrix to verify correctness
-	/*
 	cout << "Result matrix: " << endl;
 	for (i = 0; i < 1; i++)
 	{
@@ -65,7 +61,7 @@ void OnMult(int m_ar, int m_br, double &timeTaken)
 			cout << phc[j] << " ";
 	}
 	cout << endl;
-	*/
+	
 
 	timeTaken = end - start;
 	free(pha);
@@ -73,34 +69,8 @@ void OnMult(int m_ar, int m_br, double &timeTaken)
 	free(phc);
 }
 
-void writeToCSVFile(const std::string &functionType,
-					long long L2_DCM, long long L1_DCM, int matrixSize,
-					int blockSize, int numThreads, double realTime)
-{
-	std::ofstream file;
 
-	// Open file in append mode
-	file.open("docs/data_cpp.csv", std::ios::app);
-
-	if (!file.is_open())
-	{
-		std::cerr << "Error opening file: data_cpp.csv" << std::endl;
-		return;
-	}
-
-	// Write data as a new line in CSV format
-	file << functionType << ","
-		 << L2_DCM << ","
-		 << L1_DCM << ","
-		 << matrixSize << ","
-		 << blockSize << ","
-		 << numThreads << ","
-		 << realTime << "\n";
-
-	file.close();
-}
-
-// 1.2 - Multiplication of two matrices by line
+// 1.2 - Conventional Multiplication of two matrices by line
 void OnMultLine(int m_ar, int m_br, double &timeTaken)
 {
 
@@ -128,7 +98,6 @@ void OnMultLine(int m_ar, int m_br, double &timeTaken)
 		for (j = 0; j < m_br; j++)
 			phc[i * m_br + j] = (double)(0);
 
-	Time1 = clock();
 	start = omp_get_wtime();
 	for (i = 0; i < m_ar; i++)
 	{
@@ -142,12 +111,10 @@ void OnMultLine(int m_ar, int m_br, double &timeTaken)
 		}
 	}
 	end = omp_get_wtime();
-	Time2 = clock();
-	// sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
-	// cout << st;
 
+	sprintf(st, "Time: %3.3f seconds\n", (double)(end - start));
+	cout << st;
 	// display 10 elements of the result matrix tto verify correctness
-	/*
 	cout << "Result matrix: " << endl;
 	for (i = 0; i < 1; i++)
 	{
@@ -156,170 +123,15 @@ void OnMultLine(int m_ar, int m_br, double &timeTaken)
 	}
 	cout << endl;
 	timeTaken = end - start;
-	*/
+	
 	timeTaken = end - start;
 	free(pha);
 	free(phb);
 	free(phc);
 }
 
-// 1.3.1 - Multiplication of two matrices by block with inline multiplication
-void OnMultBlockInline(int m_ar, int m_br, int bkSize, double &timeTaken)
-{
 
-	SYSTEMTIME Time1, Time2;
-
-	char st[100];
-	double temp;
-	int i, j, k;
-
-	double *pha, *phb, *phc;
-
-	double start, end;
-	pha = (double *)malloc((m_ar * m_ar) * sizeof(double));
-	phb = (double *)malloc((m_ar * m_ar) * sizeof(double));
-	phc = (double *)malloc((m_ar * m_ar) * sizeof(double));
-
-	for (i = 0; i < m_ar; i++)
-		for (j = 0; j < m_ar; j++)
-			pha[i * m_ar + j] = (double)1.0;
-
-	for (i = 0; i < m_br; i++)
-		for (j = 0; j < m_br; j++)
-			phb[i * m_br + j] = (double)(i + 1);
-
-	for (i = 0; i < m_br; i++)
-		for (j = 0; j < m_br; j++)
-			phc[i * m_br + j] = (double)(0);
-
-	Time1 = clock();
-	// block algorithm using inline multiplication
-	start = omp_get_wtime();
-
-	for (int bi = 0; bi < m_br; bi = bi + bkSize)
-	{
-		for (int bj = 0; bj < m_br; bj = bj + bkSize)
-		{
-			for (int bk = 0; bk < m_br; bk = bk + bkSize)
-			{
-				int minValueI = min(bi + bkSize, m_br);
-				int minValueJ = min(bj + bkSize, m_br);
-				int minValueK = min(bk + bkSize, m_br);
-				for (i = bi; i < minValueI; i++)
-				{
-					for (j = bj; j < minValueJ; j++)
-					{
-						int sum_value = pha[j + i * m_br];
-						for (k = bk; k < minValueK; k++)
-						{
-							phc[k + i * m_br] += sum_value * phb[k + j * m_br];
-						}
-					}
-				}
-			}
-		}
-	}
-	end = omp_get_wtime();
-	Time2 = clock();
-	// sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
-	// cout << st;
-
-	// display 10 elements of the result matrix tto verify correctness
-	/*
-	cout << "Result matrix: " << endl;
-	for (i = 0; i < 1; i++)
-	{
-		for (j = 0; j < min(10, m_br); j++)
-			cout << phc[j] << " ";
-	}
-	cout << endl;
-	*/
-	timeTaken = end - start;
-	free(pha);
-	free(phb);
-	free(phc);
-}
-// 1.3.2 - Multiplication of two matrices by block
-void OnMultBlock(int m_ar, int m_br, int bkSize, double &timeTaken)
-{
-
-	SYSTEMTIME Time1, Time2;
-
-	char st[100];
-	double temp;
-	int i, j, k;
-	double start, end;
-
-	double *pha, *phb, *phc;
-
-	pha = (double *)malloc((m_ar * m_ar) * sizeof(double));
-	phb = (double *)malloc((m_ar * m_ar) * sizeof(double));
-	phc = (double *)malloc((m_ar * m_ar) * sizeof(double));
-
-	for (i = 0; i < m_ar; i++)
-		for (j = 0; j < m_ar; j++)
-			pha[i * m_ar + j] = (double)1.0;
-
-	for (i = 0; i < m_br; i++)
-		for (j = 0; j < m_br; j++)
-			phb[i * m_br + j] = (double)(i + 1);
-
-	for (i = 0; i < m_br; i++)
-		for (j = 0; j < m_br; j++)
-			phc[i * m_br + j] = (double)(0);
-
-	Time1 = clock();
-	start = omp_get_wtime();
-
-	for (int bi = 0; bi < m_br; bi = bi + bkSize)
-	{
-		for (int bj = 0; bj < m_br; bj = bj + bkSize)
-		{
-			for (int bk = 0; bk < m_br; bk = bk + bkSize)
-			{
-				int minValueI = min(bi + bkSize, m_br);
-				int minValueJ = min(bj + bkSize, m_br);
-				int minValueK = min(bk + bkSize, m_br);
-
-				for (i = bi; i < minValueI; i++)
-				{
-					for (j = bj; j < minValueJ; j++)
-					{
-						temp = 0;
-						for (k = bk; k < minValueK; k++)
-						{
-							temp += pha[i * m_ar + k] * phb[k * m_br + j];
-						}
-						phc[i * m_ar + j] += temp;
-					}
-				}
-			}
-		}
-	}
-	end = omp_get_wtime();
-	Time2 = clock();
-
-	// sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
-	// cout << st;
-
-	// display 10 elements of the result matrix to verify correctness
-	/*
-	cout << "Result matrix: " << endl;
-	for (i = 0; i < 1; i++)
-	{
-		for (j = 0; j < min(10, m_br); j++)
-			cout << phc[j] << " ";
-	}
-	cout << endl;
-	*/
-	timeTaken = end - start;
-	free(pha);
-	free(phb);
-	free(phc);
-}
-
-// 2.1 Parallel version using normal matrix product
-
+// 2.1 Parallel version outer loop using normal matrix product
 void OnMultParallelized(int m_ar, int m_br, double &timeTaken)
 {
 
@@ -344,7 +156,6 @@ void OnMultParallelized(int m_ar, int m_br, double &timeTaken)
 		for (j = 0; j < m_br; j++)
 			phb[i * m_br + j] = (double)(i + 1);
 
-	Time1 = clock();
 	start = omp_get_wtime();
 
 #pragma omp parallel for
@@ -362,12 +173,10 @@ void OnMultParallelized(int m_ar, int m_br, double &timeTaken)
 	}
 
 	end = omp_get_wtime();
-	Time2 = clock();
-	// sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
-	// cout << st;
+	sprintf(st, "Time: %3.3f seconds\n", (double)(end - start));
+	cout << st;
 
-	// display 10 elements of the result matrix tto verify correctness
-	/*
+
 	cout << "Result matrix: " << endl;
 	for (i = 0; i < 1; i++)
 	{
@@ -375,16 +184,15 @@ void OnMultParallelized(int m_ar, int m_br, double &timeTaken)
 			cout << phc[j] << " ";
 	}
 	cout << endl;
-	*/
+	
 
-	double gflops = (2.0 * m_ar * m_ar * m_br) / ((end - start) * 1e6);
-	// printf("Performance: %.2f MFLOPS\n", gflops);
 	timeTaken = end - start;
 	free(pha);
 	free(phb);
 	free(phc);
 }
 
+// 2.2 Parallel version inner loop using normal matrix product
 void OnMultParallelizedInnerMostLoop(int m_ar, int m_br, double &timeTaken)
 {
 
@@ -409,7 +217,6 @@ void OnMultParallelizedInnerMostLoop(int m_ar, int m_br, double &timeTaken)
 		for (j = 0; j < m_br; j++)
 			phb[i * m_br + j] = (double)(i + 1);
 
-	Time1 = clock();
 	start = omp_get_wtime();
 
 	#pragma omp parallel private(i, j, temp)
@@ -429,12 +236,10 @@ void OnMultParallelizedInnerMostLoop(int m_ar, int m_br, double &timeTaken)
 	
 
 	end = omp_get_wtime();
-	Time2 = clock();
-	// sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
-	// cout << st;
+	sprintf(st, "Time: %3.3f seconds\n", (double)(end - start));
+	cout << st;
 
-	// display 10 elements of the result matrix tto verify correctness
-	/*
+	
 	cout << "Result matrix: " << endl;
 	for (i = 0; i < 1; i++)
 	{
@@ -442,10 +247,8 @@ void OnMultParallelizedInnerMostLoop(int m_ar, int m_br, double &timeTaken)
 			cout << phc[j] << " ";
 	}
 	cout << endl;
-	*/
+	
 
-	double gflops = (2.0 * m_ar * m_ar * m_br) / ((end - start) * 1e6);
-	// printf("Performance: %.2f MFLOPS\n", gflops);
 	timeTaken = end - start;
 	free(pha);
 	free(phb);
@@ -453,8 +256,7 @@ void OnMultParallelizedInnerMostLoop(int m_ar, int m_br, double &timeTaken)
 }
 
 
-// 2.2 Parallel version using inline matrix product
-
+// 2.3 Parallel version outer loop using inline matrix product
 void OnMultLineParallelized(int m_ar, int m_br, double &timeTaken)
 {
 
@@ -483,7 +285,6 @@ void OnMultLineParallelized(int m_ar, int m_br, double &timeTaken)
 		for (j = 0; j < m_br; j++)
 			phc[i * m_br + j] = (double)(0);
 
-	Time1 = clock();
 	start = omp_get_wtime();
 
 	#pragma omp parallel 
@@ -505,12 +306,10 @@ void OnMultLineParallelized(int m_ar, int m_br, double &timeTaken)
 	
 
 	end = omp_get_wtime();
-	Time2 = clock();
-	// sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
-	// cout << st;
+	sprintf(st, "Time: %3.3f seconds\n", (double)(end - start));
+	cout << st;
 
 	// display 10 elements of the result matrix tto verify correctness
-	/*~
 	cout << "Result matrix: " << endl;
 	for (i = 0; i < 1; i++)
 	{
@@ -518,10 +317,9 @@ void OnMultLineParallelized(int m_ar, int m_br, double &timeTaken)
 			cout << phc[j] << " ";
 	}
 	cout << endl;
-	*/
+	
 
-	double gflops = (2.0 * m_ar * m_ar * m_br) / ((end - start) * 1e6);
-	// printf("Performance: %.2f MFLOPS\n", gflops);
+
 	timeTaken = end - start;
 
 	free(pha);
@@ -529,7 +327,7 @@ void OnMultLineParallelized(int m_ar, int m_br, double &timeTaken)
 	free(phc);
 }
 
-
+// 2.4 Parallel version inner loop using inline matrix product
 void OnMultLineParallelizedInnerMost(int m_ar, int m_br, double &timeTaken)
 {
 
@@ -558,7 +356,6 @@ void OnMultLineParallelizedInnerMost(int m_ar, int m_br, double &timeTaken)
 		for (j = 0; j < m_br; j++)
 			phc[i * m_br + j] = (double)(0);
 
-	Time1 = clock();
 	start = omp_get_wtime();
 
 
@@ -581,12 +378,10 @@ void OnMultLineParallelizedInnerMost(int m_ar, int m_br, double &timeTaken)
 	}
 
 	end = omp_get_wtime();
-	Time2 = clock();
-	// sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
-	// cout << st;
+	sprintf(st, "Time: %3.3f seconds\n", (double)(end - start));
+	cout << st;
 
 	// display 10 elements of the result matrix tto verify correctness
-	/*
 	cout << "Result matrix: " << endl;
 	for (i = 0; i < 1; i++)
 	{
@@ -594,11 +389,8 @@ void OnMultLineParallelizedInnerMost(int m_ar, int m_br, double &timeTaken)
 			cout << phc[j] << " ";
 	}
 	cout << endl;
-	*/
+	
 
-	double gflops = (2.0 * m_ar * m_ar * m_br) / ((end - start) * 1e6);
-	// printf("Performance: %.2f MFLOPS\n", gflops);
-	// printf("Number of Threads: %d\n", num_threads);
 	timeTaken = end - start;
 
 	free(pha);
@@ -606,6 +398,156 @@ void OnMultLineParallelizedInnerMost(int m_ar, int m_br, double &timeTaken)
 	free(phc);
 }
 
+// 3.1 - Multiplication of two matrices by block with inline multiplication
+void OnMultBlockInline(int m_ar, int m_br, int bkSize, double &timeTaken)
+{
+
+	SYSTEMTIME Time1, Time2;
+
+	char st[100];
+	double temp;
+	int i, j, k;
+
+	double *pha, *phb, *phc;
+
+	double start, end;
+	pha = (double *)malloc((m_ar * m_ar) * sizeof(double));
+	phb = (double *)malloc((m_ar * m_ar) * sizeof(double));
+	phc = (double *)malloc((m_ar * m_ar) * sizeof(double));
+
+	for (i = 0; i < m_ar; i++)
+		for (j = 0; j < m_ar; j++)
+			pha[i * m_ar + j] = (double)1.0;
+
+	for (i = 0; i < m_br; i++)
+		for (j = 0; j < m_br; j++)
+			phb[i * m_br + j] = (double)(i + 1);
+
+	for (i = 0; i < m_br; i++)
+		for (j = 0; j < m_br; j++)
+			phc[i * m_br + j] = (double)(0);
+
+	// block algorithm using inline multiplication
+	start = omp_get_wtime();
+
+	for (int bi = 0; bi < m_br; bi = bi + bkSize)
+	{
+		for (int bj = 0; bj < m_br; bj = bj + bkSize)
+		{
+			for (int bk = 0; bk < m_br; bk = bk + bkSize)
+			{
+				int minValueI = min(bi + bkSize, m_br);
+				int minValueJ = min(bj + bkSize, m_br);
+				int minValueK = min(bk + bkSize, m_br);
+				for (i = bi; i < minValueI; i++)
+				{
+					for (j = bj; j < minValueJ; j++)
+					{
+						int sum_value = pha[j + i * m_br];
+						for (k = bk; k < minValueK; k++)
+						{
+							phc[k + i * m_br] += sum_value * phb[k + j * m_br];
+						}
+					}
+				}
+			}
+		}
+	}
+	end = omp_get_wtime();
+	
+
+	sprintf(st, "Time: %3.3f seconds\n", (double)(end - start));
+	cout << st;
+	cout << "Result matrix: " << endl;
+	for (i = 0; i < 1; i++)
+	{
+		for (j = 0; j < min(10, m_br); j++)
+			cout << phc[j] << " ";
+	}
+	cout << endl;
+	
+	timeTaken = end - start;
+	free(pha);
+	free(phb);
+	free(phc);
+}
+// 3.2 - Conventional Multiplication of two matrices by block
+void OnMultBlock(int m_ar, int m_br, int bkSize, double &timeTaken)
+{
+
+	SYSTEMTIME Time1, Time2;
+
+	char st[100];
+	double temp;
+	int i, j, k;
+	double start, end;
+
+	double *pha, *phb, *phc;
+
+	pha = (double *)malloc((m_ar * m_ar) * sizeof(double));
+	phb = (double *)malloc((m_ar * m_ar) * sizeof(double));
+	phc = (double *)malloc((m_ar * m_ar) * sizeof(double));
+
+	for (i = 0; i < m_ar; i++)
+		for (j = 0; j < m_ar; j++)
+			pha[i * m_ar + j] = (double)1.0;
+
+	for (i = 0; i < m_br; i++)
+		for (j = 0; j < m_br; j++)
+			phb[i * m_br + j] = (double)(i + 1);
+
+	for (i = 0; i < m_br; i++)
+		for (j = 0; j < m_br; j++)
+			phc[i * m_br + j] = (double)(0);
+
+	start = omp_get_wtime();
+
+	for (int bi = 0; bi < m_br; bi = bi + bkSize)
+	{
+		for (int bj = 0; bj < m_br; bj = bj + bkSize)
+		{
+			for (int bk = 0; bk < m_br; bk = bk + bkSize)
+			{
+				int minValueI = min(bi + bkSize, m_br);
+				int minValueJ = min(bj + bkSize, m_br);
+				int minValueK = min(bk + bkSize, m_br);
+
+				for (i = bi; i < minValueI; i++)
+				{
+					for (j = bj; j < minValueJ; j++)
+					{
+						temp = 0;
+						for (k = bk; k < minValueK; k++)
+						{
+							temp += pha[i * m_ar + k] * phb[k * m_br + j];
+						}
+						phc[i * m_ar + j] += temp;
+					}
+				}
+			}
+		}
+	}
+	end = omp_get_wtime();
+
+	sprintf(st, "Time: %3.3f seconds\n", (double)(end - start));
+	cout << st;
+
+	// display 10 elements of the result matrix to verify correctness
+	cout << "Result matrix: " << endl;
+	for (i = 0; i < 1; i++)
+	{
+		for (j = 0; j < min(10, m_br); j++)
+			cout << phc[j] << " ";
+	}
+	cout << endl;
+	
+	timeTaken = end - start;
+	free(pha);
+	free(phb);
+	free(phc);
+}
+
+// PAPI functions
 void handle_error(int retval)
 {
 	printf("PAPI error %d: %s\n", retval, PAPI_strerror(retval));
@@ -628,6 +570,55 @@ void init_papi()
 			  << " REVISION: " << PAPI_VERSION_REVISION(retval) << "\n";
 }
 
+// Auxilar function to reset and print PAPI info
+void papiResetAndPrintInfo(int EventSet)
+{
+	long long values[2];
+	int ret;
+	ret = PAPI_stop(EventSet, values);
+	if (ret != PAPI_OK)
+		cout << "ERROR: Stop PAPI" << endl;
+	printf("L1 DCM: %lld \n", values[0]);
+	printf("L2 DCM: %lld \n", values[1]);
+
+	ret = PAPI_reset(EventSet);
+	if (ret != PAPI_OK)
+		std::cout << "FAIL reset" << endl;
+	cout << endl;
+}
+
+// Auxiliary function to write data to a CSV file
+void writeToCSVFile(const std::string &functionType,
+	long long L2_DCM, long long L1_DCM, int matrixSize,
+	int blockSize, int numThreads, double realTime)
+{
+		std::ofstream file;
+
+		// Open file in append mode
+		file.open("docs/data_cpp.csv", std::ios::app);
+
+		if (!file.is_open())
+		{
+		std::cerr << "Error opening file: data_cpp.csv" << std::endl;
+		return;
+		}
+
+		// Write data as a new line in CSV format
+		file << functionType << ","
+		<< L2_DCM << ","
+		<< L1_DCM << ","
+		<< matrixSize << ","
+		<< blockSize << ","
+		<< numThreads << ","
+		<< realTime << "\n";
+
+		file.close();
+}
+
+
+// Menu functions
+
+// Handles block functions
 void chooseBlockFunction(int lin, int col, int blockSize)
 {
 	int op;
@@ -651,22 +642,7 @@ void chooseBlockFunction(int lin, int col, int blockSize)
 	}
 }
 
-void papiResetAndPrintInfo(int EventSet)
-{
-	long long values[2];
-	int ret;
-	ret = PAPI_stop(EventSet, values);
-	if (ret != PAPI_OK)
-		cout << "ERROR: Stop PAPI" << endl;
-	printf("L1 DCM: %lld \n", values[0]);
-	printf("L2 DCM: %lld \n", values[1]);
-
-	ret = PAPI_reset(EventSet);
-	if (ret != PAPI_OK)
-		std::cout << "FAIL reset" << endl;
-	cout << endl;
-}
-
+// Handles serial functions vs parallel functions
 void handleSerialVsParallel(int lin, int col, int EventSet)
 {
 	int op;
@@ -709,6 +685,7 @@ void handleSerialVsParallel(int lin, int col, int EventSet)
 	printf("Parallel Time taken: %f sec\n", paralelTime);
 }
 
+// Handles the parallelization options (only)
 void handleParallelizationOption(int lin, int col)
 {
 	int op;
@@ -734,7 +711,11 @@ void handleParallelizationOption(int lin, int col)
 		break;
 	}
 }
-// 600x600 -> 3000x3000
+
+
+// Test functions
+
+// 600x600 -> 3000x3000 matrix size
 void execFunctionWithTimeBullet1_2(void (*f)(int, int, double &), int lin, int col, double timeTaken, int EventSet, string funcType)
 {
 	int ret;
@@ -766,7 +747,8 @@ void execFunctionWithTimeBullet1_2(void (*f)(int, int, double &), int lin, int c
 		}
 	}
 }
-// 600x600 -> 3000x3000 with threads
+
+// 600x600 -> 3000x3000 matrix size with threads
 void execParallelFunctionWithTimeBullet1_2(void (*f)(int, int, double &), int lin, int col, double timeTaken, int EventSet, string funcType)
 {
 	int numThreads[4] = {4, 8, 12, 24};
@@ -804,7 +786,7 @@ void execParallelFunctionWithTimeBullet1_2(void (*f)(int, int, double &), int li
 	}
 }
 
-// 4096x4096 -> 10240x10240 interval 2048
+// 4096x4096 -> 10240x10240 matrix size with interval 2048
 void execFunctionWithTimeBullet2(void (*f)(int, int, double &), int lin, int col, double timeTaken, int EventSet, string funcType)
 {
 	int ret;
@@ -835,7 +817,7 @@ void execFunctionWithTimeBullet2(void (*f)(int, int, double &), int lin, int col
 	}
 }
 
-// 4096x4096 -> 10240x10240 interval 2048 Parallel
+// 4096x4096 -> 10240x10240 matrix size with interval 2048 Parallel
 void execParallelFunctionWithTimeBullet2(void (*f)(int, int, double &), int lin, int col, double timeTaken, int EventSet, string funcType)
 {
 	int numThreads[4] = {4, 8, 12, 24};
@@ -875,6 +857,7 @@ void execParallelFunctionWithTimeBullet2(void (*f)(int, int, double &), int lin,
 	}
 }
 
+// 600x600 -> 3000x3000 matrix size with block sizes 128, 256, 512
 void execFunctionWithBlockSize(void (*f)(int, int, int, double &), int lin, int col, int EventSet, string funcType)
 {
 	int ret;
@@ -912,15 +895,56 @@ void execFunctionWithBlockSize(void (*f)(int, int, int, double &), int lin, int 
 		}
 	}
 }
+// 4096x4096 -> 10240x10240 matrix size with block sizes 128, 256, 512
+void execFunctionWithBlockSizeBullet2(void (*f)(int, int, int, double &), int lin, int col, int EventSet, string funcType)
+{
+	int ret;
+	long long values[2];
+	int blockSizes[3] = {128, 256, 512};
 
+	double timeTaken;
+
+	for (int blockSize : blockSizes)
+	{
+
+		for (int lin = 4096; lin <= 10240; lin += 2048)
+		{
+			for (int i = 0; i < 30; i++)
+			{
+				// Start counting
+				ret = PAPI_start(EventSet);
+				if (ret != PAPI_OK)
+					cout << "ERROR: Start PAPI" << endl;
+				col = lin;
+				f(lin, col, blockSize, timeTaken);
+
+				// Reset Counting
+				ret = PAPI_stop(EventSet, values);
+				if (ret != PAPI_OK)
+					cout << "ERROR: Stop PAPI" << endl;
+				// printf("L1 DCM: %lld \n", values[0]);
+				// printf("L2 DCM: %lld \n", values[1]);
+
+				writeToCSVFile(funcType, values[1], values[0], lin, blockSize, -1, timeTaken);
+				ret = PAPI_reset(EventSet);
+				if (ret != PAPI_OK)
+					std::cout << "FAIL reset" << endl;
+			}
+		}
+	}
+}
+
+// Handle test cases
 void handleTestCases(int EventSet)
 {
-	// Execute tree times each function that is called
 	int lin, col, blockSize, ret;
 	double timeTaken;
-	/*
 	
-	// Handle Bullet point 1 Serial Mult
+	// Start of test cases 
+
+	// Run each 30 times
+
+	// Serial Mult 600x600 -> 3000x3000
 	printf("Starting onMult function ... \n");
 	execFunctionWithTimeBullet1_2(&OnMult, lin, col, timeTaken, EventSet, "Normal Mult");
 	printf("Finished onMult function \n\n");
@@ -929,40 +953,71 @@ void handleTestCases(int EventSet)
 	execFunctionWithTimeBullet1_2(&OnMultLine, lin, col, timeTaken, EventSet, "Inline Mult");
 	printf("Finished onMultLine function\n\n");
 
-	// Parallel Mult
-	printf("Starting OnMultParallelized function ... \n");
+	// Outer loop Parallel Mult 600x600 -> 3000x3000
+	printf("Starting OnMultParallelized outer loop function ... \n");
 	execParallelFunctionWithTimeBullet1_2(&OnMultParallelized, lin, col, timeTaken, EventSet, "Parallelized Normal Mult");
-	printf("Finished OnMultParallelized function \n \n");
+	printf("Finished OnMultParallelized outer loop function \n \n");
 
-	printf("Starting OnMultLineParallelized function ... \n");
+	printf("Starting OnMultLineParallelized outer loop function ... \n");
 	execParallelFunctionWithTimeBullet1_2(&OnMultLineParallelized, lin, col, timeTaken, EventSet, "Parallelized Inline Mult");
-	printf("Finished OnMultLineParallelized function \n \n");
-	
-	// Handle Bullet point 2
-	printf("Starting OnMultLine point 2 ... \n");
+	printf("Finished OnMultLineParallelized outer loop function \n \n");
+
+	// Inner loop Parallel Mult 600x600 -> 3000x3000
+	printf("Starting OnMultParallelized inner loop function ... \n");
+	execParallelFunctionWithTimeBullet1_2(&OnMultParallelizedInnerMostLoop, lin, col, timeTaken, EventSet, "Inner Most Loop Parallelization");
+	printf("Finished OnMultParallelized inner loop function \n \n");
+
+	printf("Starting OnMultLineParallelized inner loop function ... \n");
+	execParallelFunctionWithTimeBullet1_2(&OnMultLineParallelizedInnerMost, lin, col, timeTaken, EventSet, "Inner Most Loop Parallelization Inline");
+	printf("Finished OnMultLineParallelized inner loop function \n \n");
+
+	// Serial Mult 4096x4096 -> 10240x10240
+	printf("Starting OnMult ... \n");
+	execFunctionWithTimeBullet2(&OnMult, lin, col, timeTaken, EventSet, "Normal Mult");
+	printf("Finished OnMult \n\n");
+
+	printf("Starting OnMultLine ... \n");
 	execFunctionWithTimeBullet2(&OnMultLine, lin, col, timeTaken, EventSet, "Inline Mult");
-	printf("Finished OnMultLine point 2 \n\n");
-	*/
+	printf("Finished OnMultLine \n\n");
+	
+	// Outer Parallel Mult 4096x4096 -> 10240x10240
+	printf("Starting OnMultParallelized ... \n");
+	execParallelFunctionWithTimeBullet2(&OnMultParallelized, lin, col, timeTaken, EventSet, "Parallelized Normal Mult");
+	printf("Finished OnMultParallelized \n\n");
 
-	//printf("Starting OnMultLineParallelized point 2 ... \n");
-	//execParallelFunctionWithTimeBullet2(&OnMultLineParallelized, lin, col, timeTaken, EventSet, "Parallelized Inline Mult");
-	//printf("Starting OnMultLineParallelized point 2 \n \n");
+	printf("Starting OnMultLineParallelized ... \n");
+	execParallelFunctionWithTimeBullet2(&OnMultLineParallelized, lin, col, timeTaken, EventSet, "Parallelized Inline Mult");
+	printf("Finished OnMultLineParallelized \n\n");
 
-	// Handle Bullet point 3
+	// Inner Parallel Mult 4096x4096 -> 10240x10240
+	printf("Starting OnMultParallelizedInnerMostLoop ... \n");
+	execParallelFunctionWithTimeBullet2(&OnMultParallelizedInnerMostLoop, lin, col, timeTaken, EventSet, "Inner Most Loop Parallelization");
+	printf("Finished OnMultParallelizedInnerMostLoop \n\n");
 
-	printf("Starting OnMultBlockInline ...\n");
-	//execFunctionWithBlockSize(&OnMultBlockInline, lin, col, EventSet, "Inline Block Mult");
+	printf("Starting OnMultLineParallelizedInnerMost ... \n");
+	execParallelFunctionWithTimeBullet2(&OnMultLineParallelizedInnerMost, lin, col, timeTaken, EventSet, "Inner Most Loop Parallelization Inline");
+	printf("Finished OnMultLineParallelizedInnerMost \n\n");
+
+	// Block Mult 600x600 -> 3000x3000
+	printf("Starting OnMultBlockInline ... \n");
+	execFunctionWithBlockSize(&OnMultBlockInline, lin, col, EventSet, "Inline Block Mult");
 	printf("Finished OnMultBlockInline \n\n");
-	// Possibly unfeasible
+
 	printf("Starting OnMultBlock ... \n");
-	//execFunctionWithBlockSize(&OnMultBlock, lin, col, EventSet, "Block Mult");
+	execFunctionWithBlockSize(&OnMultBlock, lin, col, EventSet, "Block Mult");
 	printf("Finished OnMultBlock \n\n");
 
-	//execParallelFunctionWithTimeBullet1_2(&OnMultLineParallelizedInnerMost, lin, col, timeTaken, EventSet, "Inner Most Loop Parallelization Inline");
-	
-	execParallelFunctionWithTimeBullet2(&OnMultLineParallelizedInnerMost, lin, col, timeTaken, EventSet, "Parallelized Normal Mult");
+	// Block Mult 4096x4096 -> 10240x10240
+	printf("Starting OnMultBlockInline ... \n");
+	execFunctionWithBlockSizeBullet2(&OnMultBlockInline, lin, col, EventSet, "Inline Block Mult");
+	printf("Finished OnMultBlockInline \n\n");
 
-	
+	printf("Starting OnMultBlock ... \n");
+	execFunctionWithBlockSizeBullet2(&OnMultBlock, lin, col, EventSet, "Block Mult");
+	printf("Finished OnMultBlock \n\n");
+
+	// End of test cases
+
 	ret = PAPI_remove_event(EventSet, PAPI_L1_DCM);
 	if (ret != PAPI_OK)
 		std::cout << "FAIL remove event" << endl;
@@ -976,6 +1031,9 @@ void handleTestCases(int EventSet)
 		std::cout << "FAIL destroy" << endl;
 }
 
+
+
+// Main function
 int main(int argc, char *argv[])
 {
 
