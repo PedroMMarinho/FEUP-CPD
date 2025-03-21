@@ -299,7 +299,7 @@ public class MatrixProduct {
         try{
             FileWriter file = new FileWriter("docs/data_java.csv", true);
 
-            /*
+            
             System.out.print("== Normal multiplication tests ==");
 
             for (int n = 600; n<=3000; n+=400)
@@ -315,7 +315,7 @@ public class MatrixProduct {
             }
 
             System.out.println("Complete");
-            */
+            
 
             System.out.print("== Inline multiplication tests ==");
 
@@ -335,7 +335,7 @@ public class MatrixProduct {
 
             System.out.println("Complete");
 
-            /*
+            
             System.out.print("== Block multiplication tests ==");
 
             for (int n = 4096; n<=10240; n+=2048)
@@ -369,7 +369,7 @@ public class MatrixProduct {
             }
 
             System.out.println("Complete");
-            */
+            
             file.close();
         }
         catch (IOException e){
