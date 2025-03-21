@@ -7,6 +7,7 @@ CPP_DIR = cpp
 GO_DIR = go
 JAVA_DIR = java
 OUTPUT_DIR = output
+PYTHON_DIR = python
 
 # Source files
 CPP_SRC = $(CPP_DIR)/matrixproduct.cpp
@@ -16,6 +17,8 @@ GO_BIN = $(OUTPUT_DIR)/matrixproduct_go
 
 JAVA_SRC = $(JAVA_DIR)/MatrixProduct.java
 JAVA_CLASS = MatrixProduct
+
+PYTHON_SRC = src/$(PYTHON_DIR)/matrixproduct.py
 
 # Default target
 all_tests: build_cpp build_go build_java run_all_tests
@@ -33,7 +36,7 @@ build_java:
 	javac -d $(OUTPUT_DIR) src/$(JAVA_SRC)
 
 # Run all test cases
-run_all_tests: run_cpp_test run_go_test run_java_test
+run_all_tests: run_cpp_test run_go_test run_java_test run_python_test
 
 # Run C++ test
 run_cpp_test:
@@ -50,6 +53,10 @@ run_java_test:
 	@echo "Running Java test cases..."
 	java -cp $(OUTPUT_DIR) $(JAVA_CLASS) test
 
+run_python_test: 
+	@echo "Running Python test cases..."
+	python $(PYTHON_SRC) test
+
 # Run C++ without the test argument
 run_cpp:
 	@echo "Running C++ without test argument..."
@@ -63,7 +70,12 @@ run_go:
 # Run Java without the test argument
 run_java:
 	@echo "Running Java without test argument..."
-	
+	java -cp $(OUTPUT_DIR) $(JAVA_CLASS)
+
+run_python: 
+	@echo "Running Python without test argument..."
+	python $(PYTHON_SRC)
+
 # Clean generated files (but keep the output/ dir)
 clean:
 	rm -f $(OUTPUT_DIR)/matrixproduct_cpp
