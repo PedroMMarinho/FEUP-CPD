@@ -179,61 +179,87 @@ plt.tight_layout()
 plt.savefig("real_time_vs_cache_misses.png", dpi=300, bbox_inches='tight')
 
 
-# 4. Create an additional detailed visualization showing the growth of cache misses with matrix size
-fig, ax1 = plt.subplots(figsize=(12, 7))
-
-# Setup for dual y-axis
+# Create a figure and dual y-axes in dark mode
+fig, ax1 = plt.subplots(figsize=(12, 7), facecolor='#121212')
 ax2 = ax1.twinx()
 
-# Plot L1 and L2 cache misses on different axes for better visibility
-line_styles = ['-', '--', '-.', ':']
-for i, (func_type, data) in enumerate([("Normal Mult", normal_mult), ("Inline Mult", inline_mult), ("Block Mult", block_mult), ("Inline Block Mult", inline_block_mult)]):
-    # Plot L1 cache misses (left axis)
-    ln1 = ax1.plot(data["MatrixSize"], data["L1_DCM"], 
-             marker=markers[func_type], 
-             linestyle=line_styles[i], 
-             linewidth=2.5, 
-             markersize=8,
-             color=colors[func_type], 
+# Dark mode styling
+background_color = '#121212'
+axes_color = '#1E1E1E'
+text_color = '#EEEEEE'
+grid_color = '#333333'
+
+# Set figure and axes background
+fig.patch.set_facecolor(background_color)
+ax1.set_facecolor(axes_color)
+ax2.set_facecolor(axes_color)
+
+ax1.tick_params(axis='x', colors=text_color)
+ax1.tick_params(axis='y', colors=text_color)
+ax2.tick_params(axis='y', colors=text_color)
+
+ax1.xaxis.label.set_color(text_color)
+ax1.yaxis.label.set_color('#4FC3F7')  # L1 color
+ax2.yaxis.label.set_color('#FF8A65')  # L2 color
+
+ax1.grid(True, color=grid_color, linestyle='--', alpha=0.5, which='both')
+
+# Normalization across all L1 and L2 data (combined normalization)
+all_l1 = pd.concat([normal_mult["L1_DCM"], inline_mult["L1_DCM"], block_mult["L1_DCM"], inline_block_mult["L1_DCM"]])
+all_l2 = pd.concat([normal_mult["L2_DCM"], inline_mult["L2_DCM"], block_mult["L2_DCM"], inline_block_mult["L2_DCM"]])
+
+epsilon = 1e-6
+min_l1 = all_l1.min()
+max_l1 = all_l1.max()
+min_l2 = all_l2.min()
+max_l2 = all_l2.max()
+
+# Plot normalized L1 and L2 cache misses per function type
+for i, (func_type, data) in enumerate([
+    ("Normal Mult", normal_mult),
+    ("Inline Mult", inline_mult),
+    ("Block Mult", block_mult),
+    ("Inline Block Mult", inline_block_mult)
+]):
+    l1_norm = (data["L1_DCM"] - min_l1) / (max_l1 - min_l1 + epsilon)
+    l2_norm = (data["L2_DCM"] - min_l2) / (max_l2 - min_l2 + epsilon)
+
+    ax1.plot(data["MatrixSize"], l1_norm,
+             marker=markers[func_type],
+             linestyle='-', linewidth=2.5, markersize=8,
+             color=colors[func_type],
              label=f"{func_type} - L1 DCM")
-    
-    # Plot L2 cache misses (right axis)
-    ln2 = ax2.plot(data["MatrixSize"], data["L2_DCM"], 
-             marker=markers[func_type], 
-             linestyle=line_styles[i], 
-             linewidth=2.5, 
-             markersize=8,
-             color=colors[func_type], 
+
+    ax2.plot(data["MatrixSize"], l2_norm,
+             marker=markers[func_type],
+             linestyle='--', linewidth=2.5, markersize=8,
+             color=colors[func_type],
              alpha=0.6,
              label=f"{func_type} - L2 DCM")
 
-# Set labels and title
-ax1.set_xlabel("Matrix Size", fontweight='bold')
-ax1.set_ylabel("L1 Cache Misses", color='#1f77b4', fontweight='bold')
-ax2.set_ylabel("L2 Cache Misses", color='#d62728', fontweight='bold')
-plt.title("Growth of Cache Misses with Matrix Size", fontweight='bold', fontsize=15)
+# Set axis labels and title
+ax1.set_xlabel("Matrix Size", fontweight='bold', color=text_color)
+ax1.set_ylabel("Normalized L1 Cache Misses", fontweight='bold', color='#4FC3F7')
+ax2.set_ylabel("Normalized L2 Cache Misses", fontweight='bold', color='#FF8A65')
 
-# Set axis colors
-ax1.tick_params(axis='y', colors='#1f77b4')
-ax2.tick_params(axis='y', colors='#d62728')
+plt.title("Normalized Cache Misses Growth with Matrix Size (Linear Scale)",
+          fontweight='bold', fontsize=15, color=text_color)
 
-# Combine legends
+# Combine legends from both axes
 lines1, labels1 = ax1.get_legend_handles_labels()
 lines2, labels2 = ax2.get_legend_handles_labels()
-ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper left', frameon=True, framealpha=0.9)
 
-# Add grid and styling
-ax1.grid(True, alpha=0.5)
-ax1.set_facecolor("#f9f9f9")
+legend = ax1.legend(lines1 + lines2, labels1 + labels2,
+                    loc='upper left', frameon=True, framealpha=0.9, fontsize=10)
 
-# Use log scale if there's a large range of values
-if normal_mult["MatrixSize"].max() / normal_mult["MatrixSize"].min() > 10 or \
-   inline_mult["MatrixSize"].max() / inline_mult["MatrixSize"].min() > 10:
-    ax1.set_xscale('log')
-    plt.title("Growth of Cache Misses with Matrix Size (Log Scale)", fontweight='bold', fontsize=15)
+# Dark mode legend background
+legend.get_frame().set_facecolor('#1E1E1E')
+legend.get_frame().set_edgecolor('#444444')
+legend.get_frame().set_alpha(0.9)
 
-# Save the figure with high resolution
+for text in legend.get_texts():
+    text.set_color(text_color)
+
 plt.tight_layout()
-plt.savefig("cache_misses_growth.png", dpi=300, bbox_inches='tight')
-
-print("Enhanced visualizations have been created and saved as PNG files.")
+plt.savefig("cache_misses_growth_darkmode_linear_normalized.png", dpi=300, bbox_inches='tight')
+plt.show()
