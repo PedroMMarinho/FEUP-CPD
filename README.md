@@ -10,4 +10,28 @@ Group members:
 
 ## Testing Instructions
 
-// TODO Mete aqui a info do makefile e como correr os testes
+- To build the programs and run all test cases:
+
+    **make all**
+
+- To build only the C++ program and run its tests:
+
+    **make build_cpp**
+
+    **make run_cpp**
+
+
+- To build only the Go program and run its tests:
+
+    **make build_go**
+    **make run_go**
+
+- To build only the Java program and run its tests:
+
+    **make build_java**
+
+    **make run_java**
+
+- To clean up the compiled binaries and class files:
+
+    **make clean**
