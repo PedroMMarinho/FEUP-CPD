@@ -18,7 +18,7 @@ JAVA_SRC = $(JAVA_DIR)/MatrixProduct.java
 JAVA_CLASS = MatrixProduct
 
 # Default target
-all: build_cpp build_go build_java run_all
+all_tests: build_cpp build_go build_java run_all_tests
 
 # C++ build target
 build_cpp:
@@ -33,23 +33,37 @@ build_java:
 	javac -d $(OUTPUT_DIR) src/$(JAVA_SRC)
 
 # Run all test cases
-run_all: run_cpp run_go run_java
+run_all_tests: run_cpp_test run_go_test run_java_test
 
 # Run C++ test
-run_cpp:
+run_cpp_test:
 	@echo "Running C++ test cases..."
 	./$(CPP_BIN) test
 
 # Run Go test
-run_go:
+run_go_test:
 	@echo "Running Go test cases..."
 	./$(GO_BIN) test
 
 # Run Java test
-run_java:
+run_java_test:
 	@echo "Running Java test cases..."
 	java -cp $(OUTPUT_DIR) $(JAVA_CLASS) test
 
+# Run C++ without the test argument
+run_cpp:
+	@echo "Running C++ without test argument..."
+	./$(CPP_BIN)
+
+# Run Go without the test argument
+run_go:
+	@echo "Running Go without test argument..."
+	./$(GO_BIN)
+
+# Run Java without the test argument
+run_java:
+	@echo "Running Java without test argument..."
+	
 # Clean generated files (but keep the output/ dir)
 clean:
 	rm -f $(OUTPUT_DIR)/matrixproduct_cpp
