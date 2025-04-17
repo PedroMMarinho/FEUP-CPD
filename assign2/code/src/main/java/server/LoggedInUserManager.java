@@ -1,40 +1,39 @@
-package models;
+package server;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
-public class ThreadSafeRoomList {
-    private final Set<String> rooms = new HashSet<>();
+public class LoggedInUserManager {
+
+    private final Set<String> loggedInUsers = new HashSet<>();
     private final Lock lock = new ReentrantLock();
 
-    public void addRoom(String roomName) {
+    public boolean isUserLoggedIn(String username) {
         lock.lock();
         try {
-            rooms.add(roomName);
+            return loggedInUsers.contains(username);
         } finally {
             lock.unlock();
         }
     }
 
-    public boolean roomExists(String roomName) {
+    public void userLoggedIn(String username) {
         lock.lock();
         try {
-            return rooms.contains(roomName);
+            loggedInUsers.add(username);
         } finally {
             lock.unlock();
         }
     }
 
-    public String getAvailableRooms() {
+    public void userLoggedOut(String username) {
         lock.lock();
         try {
-            return rooms.stream().collect(Collectors.joining(", "));
+            loggedInUsers.remove(username);
         } finally {
             lock.unlock();
         }
     }
-
 }

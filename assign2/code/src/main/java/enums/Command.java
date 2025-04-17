@@ -4,11 +4,11 @@ package enums;
 public enum Command {
     REGISTER,
     LOGIN,
-    LIST_ROOMS,
+    REFRESH,
     JOIN_ROOM,
-    CREATE_ROOM,
-    CREATE_AI_ROOM,
-    SEND,
+    NEXT_PAGE,
+    PREVIOUS_PAGE,
+    LIST_ROOMS,
     LOGOUT,
     UNKNOWN;
 

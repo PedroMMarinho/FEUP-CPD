@@ -1,4 +1,3 @@
-// server/ServerHandler.java
 package server;
 
 import enums.Command;
@@ -16,13 +15,13 @@ public class ServerHandler implements Runnable {
     private PrintWriter out;
     private BufferedReader in;
     private ChatServer server;
-    private User currentUser;
+    private User currentUser = null;
     private AuthenticationManager authenticationManager;
 
-    public ServerHandler(Socket socket, ChatServer server, AuthenticationManager authManager) {
+    public ServerHandler(Socket socket, ChatServer server) {
         this.clientSocket = socket;
         this.server = server;
-        this.authenticationManager = authManager;
+        this.authenticationManager = server.getAuthenticationManager();
         try {
             out = new PrintWriter(clientSocket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -35,12 +34,15 @@ public class ServerHandler implements Runnable {
     public void run() {
         try {
             String clientInput;
-            while ((clientInput = in.readLine()) != null) { // Keep reading as long as the connection is open
+            while ((clientInput = in.readLine()) != null) {
                 System.out.println("Received from client [" + clientSocket.getInetAddress().getHostAddress() + "]: " + clientInput);
                 processClientInput(clientInput);
+                if (clientSocket.isClosed()) {
+                    break;
+                }
             }
         } catch (IOException e) {
-            System.out.println("Client disconnected: " + clientSocket.getInetAddress().getHostAddress());
+            System.out.println("Client disconnected: " + clientSocket.getInetAddress().getHostAddress() + (currentUser != null ? " (" + currentUser.getUsername() + ")" : ""));
         } finally {
             cleanup();
         }
@@ -57,11 +59,16 @@ public class ServerHandler implements Runnable {
 
         switch (command) {
             case REGISTER:
+                if ( currentUser != null) {
+                    out.println(ServerResponse.UNKNOWN_COMMAND);
+                    break;
+                }
                 if (parts.length == 3) {
                     String regUsername = parts[1];
                     String regPassword = parts[2];
                     if (authenticationManager.registerUser(regUsername, regPassword)) {
                         out.println(ServerResponse.REGISTER_SUCCESS);
+                        server.userLoggedIn(currentUser.getUsername());
                     } else {
                         out.println(ServerResponse.REGISTER_FAILED);
                     }
@@ -70,12 +77,24 @@ public class ServerHandler implements Runnable {
                 }
                 break;
             case LOGIN:
+                if (currentUser != null) {
+                    out.println(ServerResponse.UNKNOWN_COMMAND);
+                    break;
+                }
                 if (parts.length == 3) {
                     String loginUsername = parts[1];
                     String loginPassword = parts[2];
+
+                    if (server.isUserLoggedIn(loginUsername)) {
+                        out.println(ServerResponse.LOGIN_FAILED_ALREADY_LOGGED_IN);
+                        break;
+                    }
+
                     User user = authenticationManager.authenticate(loginUsername, loginPassword);
+
                     if (user != null) {
                         currentUser = user;
+                        server.userLoggedIn(currentUser.getUsername());
                         out.println(ServerResponse.LOGIN_SUCCESS);
                     } else {
                         out.println(ServerResponse.LOGIN_FAILED);
@@ -93,31 +112,15 @@ public class ServerHandler implements Runnable {
                     out.println(ServerResponse.JOIN_FAILED);
                 }
                 break;
-            case CREATE_ROOM:
-                if (currentUser != null && parts.length == 2) {
-                    String newRoomName = parts[1];
-                    // Implement logic to create a new room
-                    System.out.println(currentUser.getUsername() + " requested to create room: " + newRoomName);
-                    out.println(ServerResponse.ROOM_CREATED); // Send confirmation
-                } else {
-                    out.println(ServerResponse.CREATE_FAILED);
-                }
-                break;
-            case SEND:
-                if (currentUser != null && parts.length == 2) {
-                    String message = parts[1];
-                    // Implement logic to send the message to the current room
-                    System.out.println(currentUser.getUsername() + " sent message: " + message);
-                    // You'll need to know which room the user is in to forward the message
-                    out.println(ServerResponse.SEND_SUCCESS); // Placeholder
-                } else {
-                    out.println(ServerResponse.SEND_FAILED);
-                }
-                break;
             case LOGOUT:
-                System.out.println("Client " + (currentUser != null ? currentUser.getUsername() : "Guest") + " logged out.");
-                currentUser = null;
-                out.println(ServerResponse.LOGOUT_SUCCESS);
+                if (currentUser != null) {
+                    System.out.println("Client " + currentUser.getUsername() + " logged out.");
+                    server.userLoggedOut(currentUser.getUsername());
+                    currentUser = null;
+                    out.println(ServerResponse.LOGOUT_SUCCESS);
+                }else{
+                    out.println(ServerResponse.UNKNOWN_COMMAND);
+                }
                 break;
             default:
                 out.println(ServerResponse.UNKNOWN_COMMAND);
@@ -126,6 +129,9 @@ public class ServerHandler implements Runnable {
 
     private void cleanup() {
         try {
+            if (currentUser != null) {
+                server.userLoggedOut(currentUser.getUsername());
+            }
             if (out != null) {
                 out.close();
             }

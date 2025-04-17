@@ -1,5 +1,6 @@
 package client;
 
+import enums.Command;
 import enums.ServerResponse;
 import models.User;
 
@@ -8,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.Scanner;
 
 import static enums.ServerResponse.LOGIN_SUCCESS;
@@ -22,8 +24,9 @@ public class ChatClientHandler implements Runnable {
     private PrintWriter out;
     private Scanner scanner = new Scanner(System.in);
     protected volatile String currentRoom = null;
-    private ClientReceiver receiver; // Member variable
-    private Thread receiverThread;    // Member variable
+    private ClientReceiver receiver;
+    private Thread receiverThread;
+
 
     public ChatClientHandler(String serverAddress, int serverPort) {
         this.serverAddress = serverAddress;
@@ -114,71 +117,101 @@ public class ChatClientHandler implements Runnable {
 
 
     private void startChatting() {
-        receiver = new ClientReceiver(in, this);
-        receiverThread = Thread.ofVirtual()
-                .name("client-receiver")
-                .start(receiver);
-
-        System.out.println("Enter commands (LIST_ROOMS, JOIN_ROOM <room>, CREATE_ROOM <room>, CREATE_AI_ROOM <room> <prompt>, SEND <message>, LOGOUT):");
+        System.out.println("Enter commands (JOIN <room>, LOGOUT, NEXT_PAGE, PREVIOUS_PAGE, REFRESH):");
         System.out.print("> ");
+
+        out.println(Command.LIST_ROOMS);
+        handleRoomListResponse();
+
         String userInput;
 
         try {
-            while (running && (userInput = scanner.nextLine()) != null) {
-                String[] parts = userInput.split("\\s+", 2);
-                String command = parts[0].toUpperCase();
-                String data = parts.length > 1 ? parts[1] : "";
+            while (running && (userInput = scanner.nextLine().trim()) != null) {
 
-                switch (command) {
-                    case "LIST_ROOMS":
-                    case "CREATE_ROOM":
-                    case "CREATE_AI_ROOM":
-                        if (!data.isEmpty() || command.equals("LIST_ROOMS")) {
-                            out.println(userInput);
-                        } else {
-                            System.out.println("Usage: " + command + " <arguments>");
-                            System.out.print(currentRoom != null ? "[" + currentRoom + "] > " : "> ");
-                        }
-                        break;
-                    case "JOIN_ROOM":
-                        if (!data.isEmpty()) {
-                            out.println(userInput);
-                        } else {
-                            System.out.println("Usage: JOIN_ROOM <room_name>");
-                            System.out.print(currentRoom != null ? "[" + currentRoom + "] > " : "> "); // Reprint prompt
-                        }
-                        break;
-                    case "SEND":
-                        if (currentRoom != null && !data.isEmpty()) {
-                            out.println("SEND " + data);
-                        } else if (currentRoom == null) {
-                            System.out.println("You must join a room first to send a message.");
+                out.println(userInput);
+                String response = in.readLine();
+                ServerResponse serverResponse = ServerResponse.fromString(response);
+
+                if (serverResponse != null) {
+                    switch (serverResponse) {
+                        case JOINED_ROOM:
+                            System.out.println("Successfully joined the room.");
+                            receiver = new ClientReceiver(in, this);
+                            receiverThread = Thread.ofVirtual()
+                                    .name("client-receiver")
+                                    .start(receiver);
+                            String[] parts = userInput.split("\\s+", 2);
+                            if (parts.length > 1) {
+                                currentRoom = parts[1].trim();
+                                System.out.print("[" + currentRoom + "] > ");
+                            } else {
+                                System.out.print("> ");
+                            }
+                            break;
+                        case JOIN_FAILED:
+                            System.out.println("Failed to join the room.");
                             System.out.print("> ");
-                        } else {
-                            System.out.println("Usage: SEND <message>");
-                            System.out.print(currentRoom != null ? "[" + currentRoom + "] > " : "> ");
-                        }
-                        break;
-                    case "LOGOUT":
-                        running = false;
-                        out.println("LOGOUT");
-                        break;
-                    default:
-                        System.out.println("Invalid command.");
-                        System.out.print(currentRoom != null ? "[" + currentRoom + "] > " : "> "); // Reprint prompt
-                        break;
-                }
-
-                if (!running) {
+                            break;
+                        case ROOM_CREATED:
+                            System.out.println("Room created successfully.");
+                            System.out.print("> ");
+                            break;
+                        case AI_ROOM_CREATED:
+                            System.out.println("AI room created successfully.");
+                            System.out.print("> ");
+                            break;
+                        case LIST_ROOMS_RESPONSE:
+                            handleRoomListResponse();
+                            System.out.println("Enter JOIN <room_name>, LOGOUT, NEXT_PAGE, PREVIOUS_PAGE, REFRESH.");
+                            System.out.print("> ");
+                            break;
+                        case LOGOUT_SUCCESS:
+                            running = false;
+                            System.out.println("Logged out successfully.");
+                            break;
+                        case INVALID_REQUEST:
+                            System.out.println("Invalid request.");
+                            System.out.print("> ");
+                            break;
+                        case UNKNOWN_COMMAND:
+                            System.out.println("Unknown command.");
+                            System.out.print("> ");
+                            break;
+                        default:
+                            System.out.println("Server response: " + serverResponse);
+                            System.out.print("> ");
+                            break;
+                    }
+                } else {
+                    System.out.println("Connection to server lost.");
+                    running = false;
                     break;
                 }
-
             }
         } catch (Exception e) {
             if (running) {
-                System.err.println("Error reading user input: " + e.getMessage());
+                System.err.println("Error reading user input or server response: " + e.getMessage());
             }
         } finally {
+            running = false;
+        }
+    }
+
+    private void handleRoomListResponse() {
+        try {
+            String response = in.readLine();
+            System.out.println("Available Rooms:");
+            if (response != null && !response.trim().isEmpty()) {
+                // TODO CHECK IF I CAN USE ARRAYS
+                Arrays.stream(response.split(","))
+                        .map(String::trim)
+                        .sorted()
+                        .forEach(room -> System.out.println("- " + room));
+            } else {
+                System.out.println("No rooms available.");
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading room list response: " + e.getMessage());
             running = false;
         }
     }

@@ -9,15 +9,11 @@ public enum ServerResponse {
     JOINED_ROOM,
     JOIN_FAILED,
     ROOM_CREATED,
-    CREATE_FAILED,
     AI_ROOM_CREATED,
-    CREATE_AI_FAILED,
-    SEND_SUCCESS,
-    SEND_FAILED,
     LIST_ROOMS_RESPONSE,
     LOGOUT_SUCCESS,
-    LOGOUT_FAILED,
     INVALID_REQUEST,
+    LOGIN_FAILED_ALREADY_LOGGED_IN,
     UNKNOWN_COMMAND;
 
     public static ServerResponse fromString(String response) {

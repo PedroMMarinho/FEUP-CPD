@@ -8,6 +8,7 @@ public class ChatServer {
 
     private int serverPort;
     private AuthenticationManager authenticationManager;
+    private final LoggedInUserManager loggedInUserManager;
 
     public static void main(String[] args) {
         if (args.length < 1) {
@@ -29,6 +30,7 @@ public class ChatServer {
     public ChatServer(int port) {
         this.serverPort = port;
         this.authenticationManager = new AuthenticationManager("src/main/java/server/data/users.txt");
+        this.loggedInUserManager = new LoggedInUserManager();
         System.out.println("Chat server initializing on port: " + serverPort);
     }
 
@@ -40,10 +42,9 @@ public class ChatServer {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("New client connected: " + clientSocket.getInetAddress().getHostAddress());
 
-                // Create and start a virtual thread for each new client connection
                 Thread.startVirtualThread(() -> {
                     try {
-                        ServerHandler handler = new ServerHandler(clientSocket, this, authenticationManager);
+                        ServerHandler handler = new ServerHandler(clientSocket, this);
                         handler.run();
                     } catch (Exception e) {
                         System.err.println("Error handling client in virtual thread: " + e.getMessage());
@@ -54,7 +55,17 @@ public class ChatServer {
             System.err.println("Could not start server or handle connection: " + e.getMessage());
         }
     }
+    public boolean isUserLoggedIn(String username) {
+        return loggedInUserManager.isUserLoggedIn(username);
+    }
 
+    public void userLoggedIn(String username) {
+        loggedInUserManager.userLoggedIn(username);
+    }
+
+    public void userLoggedOut(String username) {
+        loggedInUserManager.userLoggedOut(username);
+    }
     public AuthenticationManager getAuthenticationManager() {
         return authenticationManager;
     }

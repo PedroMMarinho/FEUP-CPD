@@ -51,7 +51,7 @@ public class AuthenticationManager {
         if (storedHash != null && verifyPassword(password, storedHash)) {
             return new User(username);
         }
-        return null; // Authentication failed
+        return null;
     }
 
     private void saveUser(String username, String hashedPassword) {
