@@ -35,7 +35,7 @@ public class AuthenticationManager {
 
     public boolean registerUser(String username, String password) {
         if (userCredentials.containsKey(username)) {
-            return false; // Username already exists
+            return false;
         }
         String hashedPassword = hashPassword(password);
         if (hashedPassword != null) {

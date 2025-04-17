@@ -19,13 +19,11 @@ public class ChatClient {
 
         ChatClientHandler clientHandler = new ChatClientHandler(serverAddress, serverPort);
 
-        // Create and start a virtual thread with a reference we can use to wait for it
         Thread clientThread = Thread.ofVirtual()
                 .name("chat-client-handler")
                 .start(clientHandler);
 
         try {
-            // Wait for the client thread to complete
             clientThread.join();
         } catch (InterruptedException e) {
             System.err.println("Main thread interrupted while waiting for client: " + e.getMessage());

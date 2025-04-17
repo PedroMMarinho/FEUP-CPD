@@ -1,5 +1,6 @@
 package client;
 
+import enums.ServerResponse;
 import models.User;
 
 import java.io.BufferedReader;
@@ -9,16 +10,18 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
 
+import static enums.ServerResponse.LOGIN_SUCCESS;
+
 public class ChatClientHandler implements Runnable {
     private final String serverAddress;
     private final int serverPort;
     private User currentUser;
-    protected volatile boolean running = true; // volatile ensures visibility across threads
+    protected volatile boolean running = true;
     private Socket socket;
     private BufferedReader in;
     private PrintWriter out;
     private Scanner scanner = new Scanner(System.in);
-    protected volatile String currentRoom = null; // volatile as it can be updated by receiver thread
+    protected volatile String currentRoom = null;
     private ClientReceiver receiver; // Member variable
     private Thread receiverThread;    // Member variable
 
@@ -26,17 +29,6 @@ public class ChatClientHandler implements Runnable {
         this.serverAddress = serverAddress;
         this.serverPort = serverPort;
     }
-
-    public void setCurrentRoom(String roomName) {
-        this.currentRoom = roomName;
-        System.out.print(currentRoom != null ? "[" + currentRoom + "] > " : "> ");
-    }
-
-    public void clearCurrentRoom() {
-        this.currentRoom = null;
-        System.out.print("> ");
-    }
-
 
     @Override
     public void run() {
@@ -70,11 +62,13 @@ public class ChatClientHandler implements Runnable {
 
             out.println(authInput);
             String response = in.readLine();
+            ServerResponse serverResponse = ServerResponse.fromString(response);
 
-            if (response != null) {
 
-                switch (response) {
-                    case "LOGIN_SUCCESS":
+            if (serverResponse != null) {
+                switch (serverResponse) {
+
+                    case LOGIN_SUCCESS:
                         String[] loginParts = authInput.split("\\s+");
                         if (loginParts.length >= 2) {
                             String username = loginParts[1];
@@ -85,6 +79,29 @@ public class ChatClientHandler implements Runnable {
                             System.out.println("Error parsing username from login input.");
                         }
                         break;
+
+                    case REGISTER_SUCCESS:
+                        String[] registerParts = authInput.split("\\s+");
+                        if (registerParts.length >= 2) {
+                            String username = registerParts[1];
+                            currentUser = new User(username);
+                            System.out.println("Registration successful. Welcome, " + currentUser.getUsername() + "!");
+                            return true;
+                        }
+                        break;
+
+                    case LOGIN_FAILED:
+                        System.out.println("Invalid username or password.");
+                        break;
+
+                    case REGISTER_FAILED:
+                        System.out.println("Invalid Register entry.");
+                        break;
+
+                    case UNKNOWN_COMMAND:
+                        System.out.println("Invalid command.");
+                        break;
+
                 }
             } else {
                 System.out.println("Connection to server lost during authentication.");

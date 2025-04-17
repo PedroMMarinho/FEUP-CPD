@@ -55,7 +55,6 @@ public class ServerHandler implements Runnable {
         String[] parts = input.split("\\s+", 3);
         Command command = Command.fromString(parts[0]);
 
-
         switch (command) {
             case REGISTER:
                 if (parts.length == 3) {
@@ -67,7 +66,7 @@ public class ServerHandler implements Runnable {
                         out.println(ServerResponse.REGISTER_FAILED);
                     }
                 } else {
-                    out.println(ServerResponse.REGISTER_FAILED.getResponse() + " Invalid registration format. Use REGISTER <username> <password>");
+                    out.println(ServerResponse.REGISTER_FAILED);
                 }
                 break;
             case LOGIN:
@@ -78,21 +77,20 @@ public class ServerHandler implements Runnable {
                     if (user != null) {
                         currentUser = user;
                         out.println(ServerResponse.LOGIN_SUCCESS);
-                        out.println(ServerResponse.LIST_ROOMS_RESPONSE.getResponse());
                     } else {
                         out.println(ServerResponse.LOGIN_FAILED);
                     }
                 } else {
-                    out.println(ServerResponse.LOGIN_FAILED.getResponse() + " Invalid login format. Use LOGIN <username> <password>");
+                    out.println(ServerResponse.LOGIN_FAILED);
                 }
                 break;
             case JOIN_ROOM:
                 if (currentUser != null && parts.length == 2) {
                     String roomToJoin = parts[1];
                     System.out.println(currentUser.getUsername() + " requested to join room: " + roomToJoin);
-                    out.println(ServerResponse.JOINED_ROOM.getResponse() + roomToJoin);
+                    out.println(ServerResponse.JOINED_ROOM);
                 } else {
-                    out.println(ServerResponse.JOIN_FAILED.getResponse() + " You must be logged in and provide a room name to join.");
+                    out.println(ServerResponse.JOIN_FAILED);
                 }
                 break;
             case CREATE_ROOM:
@@ -100,9 +98,9 @@ public class ServerHandler implements Runnable {
                     String newRoomName = parts[1];
                     // Implement logic to create a new room
                     System.out.println(currentUser.getUsername() + " requested to create room: " + newRoomName);
-                    out.println(ServerResponse.ROOM_CREATED.getResponse() + newRoomName); // Send confirmation
+                    out.println(ServerResponse.ROOM_CREATED); // Send confirmation
                 } else {
-                    out.println(ServerResponse.CREATE_FAILED.getResponse() + " You must be logged in and provide a room name to create.");
+                    out.println(ServerResponse.CREATE_FAILED);
                 }
                 break;
             case SEND:
@@ -113,7 +111,7 @@ public class ServerHandler implements Runnable {
                     // You'll need to know which room the user is in to forward the message
                     out.println(ServerResponse.SEND_SUCCESS); // Placeholder
                 } else {
-                    out.println(ServerResponse.SEND_FAILED.getResponse() + " You must be logged in and (later) in a room to send a message.");
+                    out.println(ServerResponse.SEND_FAILED);
                 }
                 break;
             case LOGOUT:
@@ -122,7 +120,7 @@ public class ServerHandler implements Runnable {
                 out.println(ServerResponse.LOGOUT_SUCCESS);
                 break;
             default:
-                out.println(ServerResponse.UNKNOWN_COMMAND.getResponse());
+                out.println(ServerResponse.UNKNOWN_COMMAND);
         }
     }
 

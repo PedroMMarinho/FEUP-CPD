@@ -24,23 +24,6 @@ public class ClientReceiver implements Runnable {
 
             while (running && !Thread.currentThread().isInterrupted() && (serverMessage = in.readLine()) != null) {
 
-                if (serverMessage.startsWith(ServerResponse.JOINED_ROOM.getResponse())) {
-                    String[] parts = serverMessage.split("\\s+", 2);
-                    if (parts.length > 1) {
-                        clientHandler.setCurrentRoom(parts[1]);
-                        System.out.println("Successfully joined room: " + parts[1]);
-                    }
-                } else if (serverMessage.startsWith("LEFT_ROOM")) { // Example
-                    clientHandler.clearCurrentRoom();
-                    System.out.println("You have left the room.");
-                    System.out.print("> ");
-                } else if (serverMessage.startsWith("ERROR") || serverMessage.contains("FAILED")) {
-                    System.err.println("Server Error: " + serverMessage);
-                    System.out.print(clientHandler.currentRoom != null ? "[" + clientHandler.currentRoom + "] > " : "> ");
-                } else {
-                    System.out.println(serverMessage); // Display other messages (chat, notifications)
-                    System.out.print(clientHandler.currentRoom != null ? "[" + clientHandler.currentRoom + "] > " : "> ");
-                }
 
             }
         } catch (SocketException e) {
