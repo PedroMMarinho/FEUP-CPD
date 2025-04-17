@@ -3,14 +3,11 @@ package server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class ChatServer {
 
     private int serverPort;
     private AuthenticationManager authenticationManager;
-    private ExecutorService executorService;
 
     public static void main(String[] args) {
         if (args.length < 1) {
@@ -32,7 +29,6 @@ public class ChatServer {
     public ChatServer(int port) {
         this.serverPort = port;
         this.authenticationManager = new AuthenticationManager("src/main/java/server/data/users.txt");
-        this.executorService = Executors.newCachedThreadPool();
         System.out.println("Chat server initializing on port: " + serverPort);
     }
 
@@ -43,20 +39,23 @@ public class ChatServer {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("New client connected: " + clientSocket.getInetAddress().getHostAddress());
-                ServerHandler handler = new ServerHandler(clientSocket, this, authenticationManager);
-                executorService.submit(handler);
+
+                // Create and start a virtual thread for each new client connection
+                Thread.startVirtualThread(() -> {
+                    try {
+                        ServerHandler handler = new ServerHandler(clientSocket, this, authenticationManager);
+                        handler.run();
+                    } catch (Exception e) {
+                        System.err.println("Error handling client in virtual thread: " + e.getMessage());
+                    }
+                });
             }
         } catch (IOException e) {
             System.err.println("Could not start server or handle connection: " + e.getMessage());
-        } finally {
-            if (executorService != null) {
-                executorService.shutdown();
-            }
         }
     }
 
     public AuthenticationManager getAuthenticationManager() {
         return authenticationManager;
     }
-
 }

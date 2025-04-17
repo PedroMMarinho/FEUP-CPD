@@ -9,10 +9,27 @@ public class ChatClient {
         }
 
         String serverAddress = args[0];
-        int serverPort = Integer.parseInt(args[1]);
+        int serverPort;
+        try {
+            serverPort = Integer.parseInt(args[1]);
+        } catch (NumberFormatException e) {
+            System.err.println("Invalid port number: " + args[1]);
+            return;
+        }
 
         ChatClientHandler clientHandler = new ChatClientHandler(serverAddress, serverPort);
-        Thread clientThread = new Thread(clientHandler);
-        clientThread.start();
+
+        // Create and start a virtual thread with a reference we can use to wait for it
+        Thread clientThread = Thread.ofVirtual()
+                .name("chat-client-handler")
+                .start(clientHandler);
+
+        try {
+            // Wait for the client thread to complete
+            clientThread.join();
+        } catch (InterruptedException e) {
+            System.err.println("Main thread interrupted while waiting for client: " + e.getMessage());
+            Thread.currentThread().interrupt();
+        }
     }
 }
