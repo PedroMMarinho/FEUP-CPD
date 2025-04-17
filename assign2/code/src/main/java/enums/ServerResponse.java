@@ -8,7 +8,7 @@ public enum ServerResponse {
     LOGIN_FAILED,
     JOINED_ROOM,
     JOIN_FAILED,
-    ROOM_CREATED,
+    CREATED_ROOM,
     AI_ROOM_CREATED,
     LIST_ROOMS_RESPONSE,
     LOGOUT_SUCCESS,

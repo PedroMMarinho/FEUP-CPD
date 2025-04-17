@@ -100,6 +100,9 @@ public class ChatClientHandler implements Runnable {
                     case REGISTER_FAILED:
                         System.out.println("Invalid Register entry.");
                         break;
+                    case LOGIN_FAILED_ALREADY_LOGGED_IN:
+                        System.out.println("User is already logged in.");
+                        break;
 
                     case UNKNOWN_COMMAND:
                         System.out.println("Invalid command.");
@@ -117,17 +120,24 @@ public class ChatClientHandler implements Runnable {
 
 
     private void startChatting() {
-        System.out.println("Enter commands (JOIN <room>, LOGOUT, NEXT_PAGE, PREVIOUS_PAGE, REFRESH):");
-        System.out.print("> ");
 
-        out.println(Command.LIST_ROOMS);
-        handleRoomListResponse();
+        out.println(Command.REFRESH);
+        try {
+            String _ = in.readLine();
+            handleRoomListResponse();
+        }
+        catch (IOException ex) {
+            System.out.println("I/O error occurred: " + ex.getMessage());
+        }
 
         String userInput;
 
         try {
-            while (running && (userInput = scanner.nextLine().trim()) != null) {
+            while (running ) {
+                System.out.println("Enter commands (JOIN <room>, LOGOUT, NEXT_PAGE, PREVIOUS_PAGE, REFRESH):");
+                System.out.print("> ");
 
+                userInput = scanner.nextLine().trim();
                 out.println(userInput);
                 String response = in.readLine();
                 ServerResponse serverResponse = ServerResponse.fromString(response);
@@ -135,16 +145,14 @@ public class ChatClientHandler implements Runnable {
                 if (serverResponse != null) {
                     switch (serverResponse) {
                         case JOINED_ROOM:
-                            System.out.println("Successfully joined the room.");
-                            receiver = new ClientReceiver(in, this);
-                            receiverThread = Thread.ofVirtual()
-                                    .name("client-receiver")
-                                    .start(receiver);
                             String[] parts = userInput.split("\\s+", 2);
                             if (parts.length > 1) {
-                                currentRoom = parts[1].trim();
-                                System.out.print("[" + currentRoom + "] > ");
+                                String joinedRoomName = parts[1].trim();
+                                String ownerUsername = in.readLine();
+                                System.out.println("Joined room: " + joinedRoomName + " [owner: " + ownerUsername + "]");
+                                handleJoinedRoomResponse(joinedRoomName);
                             } else {
+                                System.out.println("Error: Room name not specified after JOIN command.");
                                 System.out.print("> ");
                             }
                             break;
@@ -152,34 +160,28 @@ public class ChatClientHandler implements Runnable {
                             System.out.println("Failed to join the room.");
                             System.out.print("> ");
                             break;
-                        case ROOM_CREATED:
-                            System.out.println("Room created successfully.");
-                            System.out.print("> ");
+                        case CREATED_ROOM:
+                            String[] input = userInput.split("\\s+", 2);
+                            if (input.length > 1) {
+                                String createdRoomName = input[1].trim();
+                                handleRoomCreatedResponse(createdRoomName);
+                            } else {
+                                System.out.println("Error: Room name not found after CREATED_ROOM response.");
+                                System.out.print("> ");
+                            }
                             break;
                         case AI_ROOM_CREATED:
                             System.out.println("AI room created successfully.");
-                            System.out.print("> ");
                             break;
                         case LIST_ROOMS_RESPONSE:
                             handleRoomListResponse();
-                            System.out.println("Enter JOIN <room_name>, LOGOUT, NEXT_PAGE, PREVIOUS_PAGE, REFRESH.");
-                            System.out.print("> ");
                             break;
                         case LOGOUT_SUCCESS:
                             running = false;
                             System.out.println("Logged out successfully.");
                             break;
-                        case INVALID_REQUEST:
-                            System.out.println("Invalid request.");
-                            System.out.print("> ");
-                            break;
                         case UNKNOWN_COMMAND:
                             System.out.println("Unknown command.");
-                            System.out.print("> ");
-                            break;
-                        default:
-                            System.out.println("Server response: " + serverResponse);
-                            System.out.print("> ");
                             break;
                     }
                 } else {
@@ -197,12 +199,24 @@ public class ChatClientHandler implements Runnable {
         }
     }
 
+    private void handleJoinedRoomResponse(String roomName) {
+        receiver = new ClientReceiver(in, this);
+        receiverThread = Thread.ofVirtual()
+                .name("client-receiver")
+                .start(receiver);
+        currentRoom = roomName;
+    }
+
+    private void handleRoomCreatedResponse(String roomName) {
+        System.out.println("Created room: " + roomName + " successfully.");
+        handleJoinedRoomResponse(roomName);
+    }
+
     private void handleRoomListResponse() {
         try {
             String response = in.readLine();
             System.out.println("Available Rooms:");
             if (response != null && !response.trim().isEmpty()) {
-                // TODO CHECK IF I CAN USE ARRAYS
                 Arrays.stream(response.split(","))
                         .map(String::trim)
                         .sorted()

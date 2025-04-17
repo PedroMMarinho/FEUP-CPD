@@ -2,6 +2,7 @@ package server;
 
 import enums.Command;
 import enums.ServerResponse;
+import models.Room;
 import models.User;
 
 import java.io.BufferedReader;
@@ -103,13 +104,26 @@ public class ServerHandler implements Runnable {
                     out.println(ServerResponse.LOGIN_FAILED);
                 }
                 break;
-            case JOIN_ROOM:
+            case JOIN:
                 if (currentUser != null && parts.length == 2) {
                     String roomToJoin = parts[1];
-                    System.out.println(currentUser.getUsername() + " requested to join room: " + roomToJoin);
-                    out.println(ServerResponse.JOINED_ROOM);
+
+                    if (server.createRoom(roomToJoin, currentUser.getUsername())) {
+                        out.println(ServerResponse.CREATED_ROOM);
+                        break;
+                    }
+
+                    Room room = server.getRoomManager().getRoomByName(roomToJoin);
+                    if (room != null) {
+                        room.addMember(currentUser.getUsername());
+                        out.println(ServerResponse.JOINED_ROOM);
+                        out.println(room.getOwner());
+                    } else {
+                        out.println(ServerResponse.JOIN_FAILED);
+                    }
+
                 } else {
-                    out.println(ServerResponse.JOIN_FAILED);
+                    out.println(ServerResponse.UNKNOWN_COMMAND);
                 }
                 break;
             case LOGOUT:
@@ -120,6 +134,13 @@ public class ServerHandler implements Runnable {
                     out.println(ServerResponse.LOGOUT_SUCCESS);
                 }else{
                     out.println(ServerResponse.UNKNOWN_COMMAND);
+                }
+                break;
+            case REFRESH:
+                if (currentUser != null) {
+                    out.println(ServerResponse.LIST_ROOMS_RESPONSE);
+                    String availableRooms = server.getAvailableRoomsString();
+                    out.println(availableRooms);
                 }
                 break;
             default:

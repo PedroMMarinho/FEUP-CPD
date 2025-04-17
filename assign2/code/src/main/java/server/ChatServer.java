@@ -1,5 +1,8 @@
 package server;
 
+import models.Room;
+import models.ThreadSafeRoomManager;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -9,6 +12,7 @@ public class ChatServer {
     private int serverPort;
     private AuthenticationManager authenticationManager;
     private final LoggedInUserManager loggedInUserManager;
+    private final ThreadSafeRoomManager roomManager;
 
     public static void main(String[] args) {
         if (args.length < 1) {
@@ -31,6 +35,7 @@ public class ChatServer {
         this.serverPort = port;
         this.authenticationManager = new AuthenticationManager("src/main/java/server/data/users.txt");
         this.loggedInUserManager = new LoggedInUserManager();
+        this.roomManager = new ThreadSafeRoomManager();
         System.out.println("Chat server initializing on port: " + serverPort);
     }
 
@@ -69,4 +74,21 @@ public class ChatServer {
     public AuthenticationManager getAuthenticationManager() {
         return authenticationManager;
     }
+
+    public String getAvailableRoomsString() {
+        return roomManager.getAvailableRooms();
+    }
+
+    public boolean createRoom(String roomName, String ownerUsername) {
+        if (!roomManager.roomExists(roomName)) {
+            roomManager.addRoom(new Room(roomName, ownerUsername));
+            return true;
+        }
+        return false;
+    }
+
+    public ThreadSafeRoomManager getRoomManager() {
+        return roomManager;
+    }
+
 }

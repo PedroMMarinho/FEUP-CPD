@@ -18,6 +18,7 @@ public class Room {
     public Room(String name, String owner) {
         this.name = name;
         this.owner = owner;
+        addMember(owner);
     }
 
     public String getName() {

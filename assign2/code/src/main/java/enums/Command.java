@@ -5,10 +5,9 @@ public enum Command {
     REGISTER,
     LOGIN,
     REFRESH,
-    JOIN_ROOM,
+    JOIN,
     NEXT_PAGE,
     PREVIOUS_PAGE,
-    LIST_ROOMS,
     LOGOUT,
     UNKNOWN;
 
