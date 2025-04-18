@@ -254,18 +254,17 @@ public class ChatClientHandler implements Runnable {
         System.out.println("\n==== You're now in chat room: " + currentRoom + " ====");
         System.out.println("Type messages to chat. Use command /leave or /help to see a list of commands.");
 
-        // Start the message receiver
         receiver = new ClientReceiver(in, this);
         receiverThread = Thread.ofVirtual()
                 .name("client-receiver")
                 .start(receiver);
 
-        // Chat room input loop
         while (running && currentState == ClientState.IN_CHAT_ROOM) {
             String message = scanner.nextLine().trim();
 
             if (message.equals("/leave")) {
                 leaveRoom();
+                break;
             } else if (message.equals("/help")) {
                 displayChatHelp();
             } else {
@@ -273,12 +272,25 @@ public class ChatClientHandler implements Runnable {
             }
         }
 
-        // If we exit the loop but are still running, it means we've left the room
+        if (receiver != null) {
+            receiver.shutdown();
+            receiver = null;
+        }
+
+        if (receiverThread != null) {
+            receiverThread.interrupt();
+            try {
+                receiverThread.join(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            receiverThread = null;
+        }
+
         if (running) {
             currentState = ClientState.IN_LOBBY;
         }
     }
-
     private void displayChatHelp() {
         System.out.println("\n==== CHAT COMMANDS ====");
         System.out.println("/leave - Leave the current room and return to lobby");
@@ -292,40 +304,89 @@ public class ChatClientHandler implements Runnable {
     }
 
     private void leaveRoom() {
-        out.println(Command.LEAVE_ROOM);
+        if (socket == null || socket.isClosed()) {
+            System.out.println("Connection already closed.");
+            currentRoom = null;
+            currentState = ClientState.IN_LOBBY;
+
+            // Clean up receiver thread
+            cleanupReceiver();
+            return;
+        }
+
         try {
-            String response = in.readLine();
-            ServerResponse serverResponse = ServerResponse.fromString(response);
+            // 1. First tell the receiver to stop processing new messages
+            if (receiver != null) {
+                receiver.shutdown();
+            }
 
-            if (serverResponse == ServerResponse.LEFT_ROOM) {
-                System.out.println("Left room: " + currentRoom);
+            // 2. Send the leave command
+            out.println(Command.LEAVE_ROOM);
 
-                // Shut down the receiver
-                if (receiver != null) {
-                    receiver.shutdown();
-                    receiver = null;
-                }
-
-                if (receiverThread != null) {
-                    receiverThread.interrupt();
-                    try {
-                        receiverThread.join(1000);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
+            // 3. Read the response - with a timeout to prevent blocking forever
+            String response = null;
+            if (in.ready() || socket.getInputStream().available() > 0) {
+                response = in.readLine();
+            } else {
+                // Give a little time for the response to arrive
+                long startTime = System.currentTimeMillis();
+                while (System.currentTimeMillis() - startTime < 2000) { // 2 second timeout
+                    if (in.ready() || socket.getInputStream().available() > 0) {
+                        response = in.readLine();
+                        break;
                     }
-                    receiverThread = null;
+                    Thread.sleep(100);
                 }
+            }
 
-                currentRoom = null;
-                currentState = ClientState.IN_LOBBY;
-
-                // Refresh room list when returning to lobby
-                refreshRoomList();
+            // 4. Process the response if we got one
+            if (response != null) {
+                ServerResponse serverResponse = ServerResponse.fromString(response);
+                if (serverResponse == ServerResponse.LEFT_ROOM) {
+                    System.out.println("Left room: " + currentRoom);
+                } else {
+                    System.out.println("Unexpected response when leaving room: " + serverResponse);
+                }
+            } else {
+                System.out.println("No response received when leaving room.");
             }
         } catch (IOException e) {
             System.out.println("Error leaving room: " + e.getMessage());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            // 5. Always clean up, regardless of what happened
+            currentRoom = null;
+            currentState = ClientState.IN_LOBBY;
+
+            // Clean up receiver thread
+            cleanupReceiver();
+
+            // 6. Refresh the room list if still connected
+            if (running && socket != null && !socket.isClosed()) {
+                try {
+                    refreshRoomList();
+                } catch (Exception e) {
+                    System.out.println("Could not refresh room list: " + e.getMessage());
+                }
+            }
         }
     }
+
+    // Helper method to clean up the receiver thread
+    private void cleanupReceiver() {
+        if (receiverThread != null) {
+            receiverThread.interrupt();
+            try {
+                receiverThread.join(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            receiver = null;
+            receiverThread = null;
+        }
+    }
+
 
     private void handleRoomListResponse() {
         try {
@@ -345,6 +406,15 @@ public class ChatClientHandler implements Runnable {
             running = false;
         }
     }
+
+
+    public void notifyDisconnect() {
+        if (running) {
+            running = false;
+            System.out.println("\nLost connection to server.");
+        }
+    }
+
 
     private void cleanup() {
         running = false;
@@ -394,9 +464,4 @@ public class ChatClientHandler implements Runnable {
         return running;
     }
 
-    // Called by ClientReceiver when it detects server disconnect
-    public void notifyServerDisconnect() {
-        running = false;
-        System.out.println("\nServer disconnected. Press Enter to exit.");
-    }
 }

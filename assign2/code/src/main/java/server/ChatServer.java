@@ -13,6 +13,7 @@ public class ChatServer {
     private AuthenticationManager authenticationManager;
     private final LoggedInUserManager loggedInUserManager;
     private final ThreadSafeRoomManager roomManager;
+    private final MessageBroadcaster messageBroadcaster;
 
     public static void main(String[] args) {
         if (args.length < 1) {
@@ -31,12 +32,21 @@ public class ChatServer {
         server.start();
     }
 
+
+
+    // Update the constructor
     public ChatServer(int port) {
         this.serverPort = port;
         this.authenticationManager = new AuthenticationManager("src/main/java/server/data/users.txt");
         this.loggedInUserManager = new LoggedInUserManager();
         this.roomManager = new ThreadSafeRoomManager();
+        this.messageBroadcaster = new MessageBroadcaster();
         System.out.println("Chat server initializing on port: " + serverPort);
+    }
+
+    // Add this getter method
+    public MessageBroadcaster getMessageBroadcaster() {
+        return messageBroadcaster;
     }
 
     public void start() {
