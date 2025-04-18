@@ -10,6 +10,7 @@ public enum ServerResponse {
     JOIN_FAILED,
     CREATED_ROOM,
     AI_ROOM_CREATED,
+    LEFT_ROOM,
     LIST_ROOMS_RESPONSE,
     LOGOUT_SUCCESS,
     INVALID_REQUEST,

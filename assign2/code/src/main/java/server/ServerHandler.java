@@ -55,7 +55,7 @@ public class ServerHandler implements Runnable {
             return;
         }
 
-        String[] parts = input.split("\\s+", 3);
+        String[] parts = input.split("\\s+");
         Command command = Command.fromString(parts[0]);
 
         switch (command) {
@@ -69,6 +69,7 @@ public class ServerHandler implements Runnable {
                     String regPassword = parts[2];
                     if (authenticationManager.registerUser(regUsername, regPassword)) {
                         out.println(ServerResponse.REGISTER_SUCCESS);
+                        currentUser = new User(regUsername);
                         server.userLoggedIn(currentUser.getUsername());
                     } else {
                         out.println(ServerResponse.REGISTER_FAILED);
@@ -105,7 +106,7 @@ public class ServerHandler implements Runnable {
                 }
                 break;
             case JOIN:
-                if (currentUser != null && parts.length == 2) {
+                if (currentUser != null) {
                     String roomToJoin = parts[1];
 
                     if (server.createRoom(roomToJoin, currentUser.getUsername())) {

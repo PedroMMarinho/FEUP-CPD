@@ -9,6 +9,8 @@ public enum Command {
     NEXT_PAGE,
     PREVIOUS_PAGE,
     LOGOUT,
+    LEAVE_ROOM,
+    MESSAGE,
     UNKNOWN;
 
     public static Command fromString(String text) {
