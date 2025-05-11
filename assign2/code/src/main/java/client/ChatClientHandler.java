@@ -1,402 +1,281 @@
 package client;
 
+import enums.ClientState;
 import enums.Command;
 import enums.ServerResponse;
+import models.ThreadSafeRoomManager;
 import models.User;
+import server.AuthenticationManager;
+import server.LoggedInUserManager;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.CookieManager;
+import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Scanner;
-import enums.ClientState;
-
 
 public class ChatClientHandler implements Runnable {
-    private final String serverAddress;
-    private final int serverPort;
-    private User currentUser;
-    protected volatile boolean running = true;
+    public static ArrayList<ChatClientHandler> clientHandlers = new ArrayList<>();
     private Socket socket;
-    private BufferedReader in;
-    private PrintWriter out;
-    private Scanner scanner = new Scanner(System.in);
-    protected volatile String currentRoom = null;
-    private ClientReceiver receiver;
-    private Thread receiverThread;
+    private BufferedReader bufferedReader;
+    private BufferedWriter bufferedWriter;
+    private User currentUser;
+    private ClientState clientState = ClientState.AUTHENTICATING;
+    private static final AuthenticationManager authManager;
+    private static final LoggedInUserManager loggedInManager;
+    private static final ThreadSafeRoomManager roomManager;
 
+    static {
+        authManager = new AuthenticationManager("src/main/java/server/data/users.txt");
+        loggedInManager = new LoggedInUserManager();
+        roomManager = new ThreadSafeRoomManager();
+    }
 
-    private ClientState currentState = ClientState.DISCONNECTED;
-
-
-    public ChatClientHandler(String serverAddress, int serverPort) {
-        this.serverAddress = serverAddress;
-        this.serverPort = serverPort;
+    public ChatClientHandler(Socket socket) {
+        try {
+            this.socket = socket;
+            this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        } catch (IOException e) {
+            closeEverything(socket, bufferedReader, bufferedWriter);
+        }
     }
 
     @Override
     public void run() {
         try {
-            connectToServer();
-            if (authenticate()) {
-                currentState = ClientState.IN_LOBBY;
-                handleLobby();
-            }
-        } catch (IOException ex) {
-            if (running) {
-                System.out.println("I/O error occurred: " + ex.getMessage());
-            } else {
-                System.out.println("Connection closed as requested.");
-            }
-        } finally {
-            cleanup();
-        }
-    }
-
-    private void connectToServer() throws IOException {
-        socket = new Socket(serverAddress, serverPort);
-        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        out = new PrintWriter(socket.getOutputStream(), true);
-
-        System.out.println("Connecting to the chat server at " + serverAddress + ":" + serverPort + "...");
-        currentState = ClientState.AUTHENTICATING;
-    }
-
-    private boolean authenticate() throws IOException {
-
-        while (currentUser == null && running) {
-            System.out.print("Enter 'LOGIN <username> <password>' or 'REGISTER <username> <password>': ");
-            String authInput = scanner.nextLine().trim();
-
-            out.println(authInput);
-            String response = in.readLine();
-            ServerResponse serverResponse = ServerResponse.fromString(response);
-
-            if (serverResponse != null) {
-                switch (serverResponse) {
-                    case LOGIN_SUCCESS:
-                        String[] loginParts = authInput.split("\\s+");
-                        if (loginParts.length >= 2) {
-                            String username = loginParts[1];
-                            currentUser = new User(username);
-                            System.out.println("Authentication successful. Welcome, " + currentUser.getUsername() + "!");
-                            return true;
-                        } else {
-                            System.out.println("Error parsing username from login input.");
-                        }
+            while (socket.isConnected() && clientState != ClientState.DISCONNECTED) {
+                switch (clientState) {
+                    case AUTHENTICATING:
+                        handleAuthentication();
                         break;
-
-                    case REGISTER_SUCCESS:
-                        String[] registerParts = authInput.split("\\s+");
-                        if (registerParts.length >= 2) {
-                            String username = registerParts[1];
-                            currentUser = new User(username);
-                            System.out.println("Registration successful. Welcome, " + currentUser.getUsername() + "!");
-                            return true;
-                        }
+                    case IN_LOBBY:
+                        handleLobby();
                         break;
-
-                    case LOGIN_FAILED:
-                        System.out.println("Invalid username or password.");
-                        break;
-
-                    case REGISTER_FAILED:
-                        System.out.println("Invalid Register entry.");
-                        break;
-
-                    case LOGIN_FAILED_ALREADY_LOGGED_IN:
-                        System.out.println("User is already logged in.");
-                        break;
-
-                    case UNKNOWN_COMMAND:
-                        System.out.println("Invalid command.");
+                    case IN_CHAT_ROOM:
+                        handleChatRoom();
                         break;
                 }
-            } else {
-                System.out.println("Connection to server lost during authentication.");
-                running = false;
-                break;
             }
+        } catch (IOException e) {
+            System.err.println("Error in client handler: " + e.getMessage());
+        } finally {
+            closeEverything(socket, bufferedReader, bufferedWriter);
         }
-        return false;
     }
 
-    private void handleLobby() {
-        // Initial room list refresh
-        refreshRoomList();
+    private void handleAuthentication() throws IOException {
+            bufferedWriter.write("Welcome to the chat server! Please login or register.");
+            bufferedWriter.newLine();
+            bufferedWriter.write("Enter commands LOGIN <username> <password> or REGISTER <username> <password>");
+            bufferedWriter.newLine();
+            bufferedWriter.flush();
 
-        while (running && currentState == ClientState.IN_LOBBY) {
+            while (clientState == ClientState.AUTHENTICATING) {
+                String input = bufferedReader.readLine();
+                if (input == null) {
+                    clientState = ClientState.DISCONNECTED;
+                    return;
+                }
+                System.out.println(input);
+                String[] parts = input.split(" ", 3);
+                if (parts.length < 3) {
+                    sendError("Invalid command format. Use: COMMAND username password");
+                    continue;
+                }
 
-            displayLobbyCommands();
-            String userInput = scanner.nextLine().trim();
+                String action = parts[0].toUpperCase();
+                String username = parts[1];
+                String password = parts[2];
+                Command command = Command.fromString(action);
+                if (command.equals(Command.LOGIN) && loggedInManager.isUserLoggedIn(username)) {
+                    sendError("User already logged in. Please use a different account.");
+                    continue;
+                }
 
-            // Extract command part (first word)
-            String commandStr = userInput.split("\\s+", 2)[0].toUpperCase();
-            Command command = Command.fromString(commandStr);
+                if (command.equals(Command.LOGIN)) {
+                    User user = authManager.authenticate(username, password);
+                    if (user != null) {
+                        this.currentUser = user;
+                        loggedInManager.userLoggedIn(username);
+                        sendSuccess("Login successful! Welcome " + username);
+                        break;
+                    }else {
+                        sendError("Invalid username or password. Please try again.");
+                    }
+                } else if (command.equals(Command.REGISTER)) {
+                    boolean registered = authManager.registerUser(username, password);
+                    if (registered) {
+                        this.currentUser = new User(username);
+                        loggedInManager.userLoggedIn(username);
+                        sendSuccess("Registration successful! Welcome " + username);
+                        break;
+                    } else {
+                        sendError("Username already exists");
+                    }
+                } else {
+                    sendError("Unknown command. Use LOGIN or REGISTER");
+                }
+            }
+            clientState = ClientState.IN_LOBBY;
+
+    }
+    private void sendResponse(ServerResponse serverResponse, String message) throws  IOException{
+        bufferedWriter.write(serverResponse.toString());
+        bufferedWriter.newLine();
+        bufferedWriter.write(message);
+        bufferedWriter.newLine();
+        bufferedWriter.flush();
+    }
+
+    private void listRooms() throws IOException {
+        bufferedWriter.write("===== Available Rooms =====");
+        bufferedWriter.newLine();
+        if (!roomManager.getAvailableRooms().isEmpty()) {
+            Arrays.stream(roomManager.getAvailableRooms().split(","))
+                    .map(String::trim)
+                    .forEach(room -> {
+                        try {
+                            bufferedWriter.write("- " + room);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+        }else {
+            bufferedWriter.write("No rooms available");
+        }
+        bufferedWriter.newLine();
+        bufferedWriter.write("=========================");
+        bufferedWriter.newLine();
+        bufferedWriter.write("END");
+        bufferedWriter.newLine();
+        bufferedWriter.flush();
+    }
+
+
+    private void handleLobby() throws IOException {
+        bufferedWriter.write("==== LOBBY COMMANDS ====");
+        bufferedWriter.newLine();
+        bufferedWriter.write("JOIN <room>     - Join a chat room or create if does not exist.");
+        bufferedWriter.newLine();
+        bufferedWriter.write("REFRESH         - Refresh room list");
+        bufferedWriter.newLine();
+        bufferedWriter.write("LOGOUT          - Log out from the server");
+        bufferedWriter.newLine();
+        listRooms();
+
+        while (clientState == ClientState.IN_LOBBY) {
+            String input = bufferedReader.readLine();
+
+            if (input == null) {
+                clientState = ClientState.DISCONNECTED;
+                return;
+            }
+
+            String[] parts = input.split(" ", 2);
+
+            Command command = Command.fromString(parts[0]);
+
             switch (command) {
-                case JOIN:
-                    handleJoinCommand(userInput);
+                case Command.JOIN:
+                    clientState = ClientState.IN_CHAT_ROOM;
+                    broadCastMessage("[SERVER] " + currentUser.getUsername() + " enters the chat room");
+                    bufferedWriter.write("You have joined the chat room. Type your messages or '/exit' to leave.");
+                    bufferedWriter.newLine();
+                    bufferedWriter.flush();
                     break;
-                case REFRESH:
-                    refreshRoomList();
-                    break;
-                case LOGOUT:
+                case Command.LOGOUT:
+                    sendResponse(ServerResponse.LOGOUT_USER, "Logged out from the server successfully.");
                     handleLogout();
                     break;
-                case NEXT_PAGE, PREVIOUS_PAGE:
-                    handlePagination(userInput);
+                case Command.REFRESH:
+                    sendResponse(ServerResponse.LISTING_ROOMS, "");
+                    listRooms();
                     break;
                 default:
-                    sendCommandAndProcessResponse(userInput);
+                    sendError("Unknown command.");
+                    break;
+            }
+        }
+    }
+    private void handleLogout()  {
+        loggedInManager.userLoggedOut(currentUser.getUsername());
+        closeEverything(socket, bufferedReader, bufferedWriter);
+    }
+
+    private void handleChatRoom() throws IOException {
+        while (clientState == ClientState.IN_CHAT_ROOM) {
+            String message = bufferedReader.readLine();
+            if (message == null) {
+                clientState = ClientState.DISCONNECTED;
+                return;
             }
 
+            // Check if the client wants to exit the chat room
+            if (message.equalsIgnoreCase("/exit")) {
+                clientState = ClientState.IN_LOBBY;
+                broadCastMessage("[SERVER] " + currentUser.getUsername() + " leaves the chat room");
+                bufferedWriter.write("You have left the chat room and returned to the lobby.");
+                bufferedWriter.newLine();
+                bufferedWriter.flush();
+                return;
+            }
+
+            // Format and broadcast the message
+            String formattedMessage = currentUser.getUsername() + ": " + message;
+            broadCastMessage(formattedMessage);
         }
     }
 
-    private void displayLobbyCommands() {
-        System.out.println("\n==== LOBBY COMMANDS ====");
-        System.out.println("JOIN <room>     - Join a chat room or create if does not exist.");
-        System.out.println("REFRESH         - Refresh room list");
-        System.out.println("NEXT_PAGE       - View next page of rooms");
-        System.out.println("PREVIOUS_PAGE   - View previous page of rooms");
-        System.out.println("LOGOUT          - Log out from the server");
-        System.out.print("> ");
+    private void sendSuccess(String message) throws IOException {
+        bufferedWriter.write(ServerResponse.OK.toString());
+        bufferedWriter.newLine();
+        bufferedWriter.write(message);
+        bufferedWriter.newLine();
+        bufferedWriter.flush();
     }
 
-    private void refreshRoomList() {
-        out.println(Command.REFRESH);
-        try {
-            String response = in.readLine();
-            if (ServerResponse.fromString(response) == ServerResponse.LIST_ROOMS_RESPONSE) {
-                handleRoomListResponse();
-            }
-        } catch (IOException ex) {
-            System.out.println("Error refreshing room list: " + ex.getMessage());
-        }
+    private void sendError(String message) throws IOException {
+        bufferedWriter.write(ServerResponse.ERROR.toString());
+        bufferedWriter.newLine();
+        bufferedWriter.write(message);
+        bufferedWriter.newLine();
+        bufferedWriter.flush();
     }
 
-    private void handleJoinCommand(String userInput) {
-        out.println(userInput);
-        try {
-            String response = in.readLine();
-            ServerResponse serverResponse = ServerResponse.fromString(response);
-
-            if (serverResponse == ServerResponse.JOINED_ROOM || serverResponse == ServerResponse.CREATED_ROOM) {
-                String[] parts = userInput.split("\\s+");
-                if (parts.length > 1) {
-                    String roomName = parts[1].trim();
-
-                    String ownerInfo = "";
-                    if (serverResponse == ServerResponse.JOINED_ROOM) {
-                        String ownerUsername = in.readLine();
-                        ownerInfo = " [owner: " + ownerUsername + "]";
-                    }
-
-                    // Display appropriate message based on response type
-                    if (serverResponse == ServerResponse.JOINED_ROOM) {
-                        System.out.println("Joined room: " + roomName + ownerInfo);
-                    } else {
-                        System.out.println("Created and joined new room: " + roomName);
-                    }
-
-                    currentRoom = roomName;
-
-                    currentState = ClientState.IN_CHAT_ROOM;
-                    handleChatRoom();
+    public void broadCastMessage(String message) {
+        for (ChatClientHandler chatClientHandler : clientHandlers) {
+            try {
+                if (chatClientHandler != this && chatClientHandler.clientState == ClientState.IN_CHAT_ROOM) {
+                    chatClientHandler.bufferedWriter.write(message);
+                    chatClientHandler.bufferedWriter.newLine();
+                    chatClientHandler.bufferedWriter.flush();
                 }
-            } else if (serverResponse == ServerResponse.JOIN_FAILED) {
-                System.out.println("Failed to join the room.");
+            } catch (IOException e) {
+                chatClientHandler.closeEverything(chatClientHandler.socket, chatClientHandler.bufferedReader, chatClientHandler.bufferedWriter);
             }
-        } catch (IOException e) {
-            System.out.println("Error processing join command: " + e.getMessage());
         }
     }
 
-    private void handleLogout() {
-        out.println("LOGOUT");
+    public void removeClientHandler() {
+        clientHandlers.remove(this);
+    }
+
+    public void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
+        removeClientHandler();
         try {
-            String response = in.readLine();
-            ServerResponse serverResponse = ServerResponse.fromString(response);
-
-            if (serverResponse == ServerResponse.LOGOUT_SUCCESS) {
-                System.out.println("Logged out successfully.");
-                running = false;
+            if (bufferedReader != null) {
+                bufferedReader.close();
             }
-        } catch (IOException e) {
-            System.out.println("Error processing logout command: " + e.getMessage());
-        }
-    }
-
-    private void handlePagination(String userInput) {
-        sendCommandAndProcessResponse(userInput);
-    }
-
-    private void sendCommandAndProcessResponse(String command) {
-        out.println(command);
-        try {
-            String response = in.readLine();
-            ServerResponse serverResponse = ServerResponse.fromString(response);
-
-            if (serverResponse == ServerResponse.LIST_ROOMS_RESPONSE) {
-                handleRoomListResponse();
-            } else if (serverResponse == ServerResponse.UNKNOWN_COMMAND) {
-                System.out.println("Unknown command.");
+            if (bufferedWriter != null) {
+                bufferedWriter.close();
             }
-        } catch (IOException e) {
-            System.out.println("Error sending command: " + e.getMessage());
-        }
-    }
-
-    private void handleChatRoom() {
-        System.out.println("\n==== You're now in chat room: " + currentRoom + " ====");
-        System.out.println("Type messages to chat. Use command /leave or /help to see a list of commands.");
-
-        // Start the message receiver
-        receiver = new ClientReceiver(in, this);
-        receiverThread = Thread.ofVirtual()
-                .name("client-receiver")
-                .start(receiver);
-
-        // Chat room input loop
-        while (running && currentState == ClientState.IN_CHAT_ROOM) {
-            String message = scanner.nextLine().trim();
-
-            if (message.equals("/leave")) {
-                leaveRoom();
-            } else if (message.equals("/help")) {
-                displayChatHelp();
-            } else {
-                sendChatMessage(message);
-            }
-        }
-
-        // If we exit the loop but are still running, it means we've left the room
-        if (running) {
-            currentState = ClientState.IN_LOBBY;
-        }
-    }
-
-    private void displayChatHelp() {
-        System.out.println("\n==== CHAT COMMANDS ====");
-        System.out.println("/leave - Leave the current room and return to lobby");
-        System.out.println("/help  - Display this help message");
-        System.out.println("Anything else will be sent as a message to the room");
-    }
-
-    private void sendChatMessage(String message) {
-        out.println(Command.MESSAGE);
-        out.println(message);
-    }
-
-    private void leaveRoom() {
-        out.println(Command.LEAVE_ROOM);
-        try {
-            String response = in.readLine();
-            ServerResponse serverResponse = ServerResponse.fromString(response);
-
-            if (serverResponse == ServerResponse.LEFT_ROOM) {
-                System.out.println("Left room: " + currentRoom);
-
-                // Shut down the receiver
-                if (receiver != null) {
-                    receiver.shutdown();
-                    receiver = null;
-                }
-
-                if (receiverThread != null) {
-                    receiverThread.interrupt();
-                    try {
-                        receiverThread.join(1000);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
-                    receiverThread = null;
-                }
-
-                currentRoom = null;
-                currentState = ClientState.IN_LOBBY;
-
-                // Refresh room list when returning to lobby
-                refreshRoomList();
-            }
-        } catch (IOException e) {
-            System.out.println("Error leaving room: " + e.getMessage());
-        }
-    }
-
-    private void handleRoomListResponse() {
-        try {
-            String response = in.readLine();
-            System.out.println("\n===== Available Rooms =====");
-            if (response != null && !response.trim().isEmpty()) {
-                Arrays.stream(response.split(","))
-                        .map(String::trim)
-                        .sorted()
-                        .forEach(room -> System.out.println("- " + room));
-            } else {
-                System.out.println("No rooms available.");
-            }
-            System.out.println("=========================");
-        } catch (IOException e) {
-            System.err.println("Error reading room list response: " + e.getMessage());
-            running = false;
-        }
-    }
-
-    private void cleanup() {
-        running = false;
-
-        if (receiver != null) {
-            receiver.shutdown();
-        }
-
-        if (out != null) {
-            out.close();
-        }
-
-        try {
-            if (socket != null && !socket.isClosed()) {
+            if (socket != null) {
                 socket.close();
             }
+
+            clientState = ClientState.DISCONNECTED;
         } catch (IOException e) {
-            System.err.println("Error closing socket: " + e.getMessage());
+            e.printStackTrace();
         }
-
-        if (receiverThread != null && receiverThread.isAlive()) {
-            receiverThread.interrupt();
-            try {
-                receiverThread.join(2000);
-            } catch (InterruptedException e) {
-                System.err.println("Interrupted while waiting for receiver thread to join.");
-                Thread.currentThread().interrupt();
-            }
-        }
-
-        try {
-            if (in != null) {
-                in.close();
-            }
-        } catch (IOException e) {
-            // Ignore
-        }
-
-        if (scanner != null) {
-            scanner.close();
-        }
-
-        System.out.println("Chat client exited successfully.");
-    }
-
-    public boolean isRunning() {
-        return running;
-    }
-
-    // Called by ClientReceiver when it detects server disconnect
-    public void notifyServerDisconnect() {
-        running = false;
-        System.out.println("\nServer disconnected. Press Enter to exit.");
     }
 }

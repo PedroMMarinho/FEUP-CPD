@@ -6,8 +6,6 @@ public enum Command {
     LOGIN,
     REFRESH,
     JOIN,
-    NEXT_PAGE,
-    PREVIOUS_PAGE,
     LOGOUT,
     LEAVE_ROOM,
     MESSAGE,

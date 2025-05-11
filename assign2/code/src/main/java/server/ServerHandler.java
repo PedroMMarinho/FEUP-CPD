@@ -10,13 +10,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-
+/*
 public class ServerHandler implements Runnable {
     private Socket clientSocket;
     private PrintWriter out;
     private BufferedReader in;
     private ChatServer server;
     private User currentUser = null;
+    private Room currentRoom = null;
     private AuthenticationManager authenticationManager;
 
     public ServerHandler(Socket socket, ChatServer server) {
@@ -108,17 +109,20 @@ public class ServerHandler implements Runnable {
             case JOIN:
                 if (currentUser != null) {
                     String roomToJoin = parts[1];
+                    currentRoom = server.createRoom(roomToJoin, currentUser.getUsername());
 
-                    if (server.createRoom(roomToJoin, currentUser.getUsername())) {
+                    if (currentRoom != null) {
+                        System.out.println("Room joined: " + currentRoom);
                         out.println(ServerResponse.CREATED_ROOM);
                         break;
                     }
 
-                    Room room = server.getRoomManager().getRoomByName(roomToJoin);
-                    if (room != null) {
-                        room.addMember(currentUser.getUsername());
+                    currentRoom = server.getRoomManager().getRoomByName(roomToJoin);
+
+                    if (currentRoom != null) {
+                        currentRoom.addMember(currentUser.getUsername());
                         out.println(ServerResponse.JOINED_ROOM);
-                        out.println(room.getOwner());
+                        out.println(currentRoom.getOwner());
                     } else {
                         out.println(ServerResponse.JOIN_FAILED);
                     }
@@ -142,6 +146,14 @@ public class ServerHandler implements Runnable {
                     out.println(ServerResponse.LIST_ROOMS_RESPONSE);
                     String availableRooms = server.getAvailableRoomsString();
                     out.println(availableRooms);
+                }
+                break;
+            case LEAVE_ROOM:
+                if (currentUser != null && currentRoom != null) {
+                    currentRoom.removeMember(currentUser.getUsername());
+                    out.println(ServerResponse.LEFT_ROOM);
+                    out.println(currentUser.getUsername());
+                    currentRoom = null;
                 }
                 break;
             default:
@@ -168,3 +180,5 @@ public class ServerHandler implements Runnable {
         }
     }
 }
+
+ */

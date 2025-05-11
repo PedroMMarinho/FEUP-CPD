@@ -63,7 +63,7 @@ public class Room {
     public Set<String> getMembers() {
         membersLock.lock();
         try {
-            return new HashSet<>(members); // Return a copy to avoid external modification without locking
+            return new HashSet<>(members);
         } finally {
             membersLock.unlock();
         }
