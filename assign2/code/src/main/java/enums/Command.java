@@ -8,6 +8,7 @@ public enum Command {
     JOIN,
     LOGOUT,
     LEAVE_ROOM,
+    CHANGE_STATE,
     MESSAGE,
     UNKNOWN;
 

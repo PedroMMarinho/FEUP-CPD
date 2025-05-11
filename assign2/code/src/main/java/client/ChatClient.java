@@ -1,6 +1,7 @@
 package client;
 
 import enums.ClientState;
+import enums.Command;
 import enums.ServerResponse;
 import models.Room;
 import models.User;
@@ -14,9 +15,10 @@ public class ChatClient {
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
     private User user;
-    private Room room;
     private ClientState clientState = ClientState.AUTHENTICATING;
     private Scanner scanner;
+    private volatile boolean leaveCommandConfirmed = false;
+
 
     public ChatClient(Socket socket) {
         try{
@@ -74,27 +76,42 @@ public class ChatClient {
         bufferedWriter.flush();
     }
 
+
     public void inChatRoom(){
         try {
-            listenForMessages();
             String welcomeMessage = bufferedReader.readLine();
             System.out.println(welcomeMessage);
+            listenForMessages();
 
             while (clientState == ClientState.IN_CHAT_ROOM) {
                 String messageToSend = scanner.nextLine();
 
-
                 if (messageToSend.equalsIgnoreCase("/leave")) {
-                    bufferedWriter.write("/leave");
-                    bufferedWriter.newLine();
-                    bufferedWriter.flush();
+                    sendMessageToChat("/leave");
 
-                    String response = bufferedReader.readLine();
-                    System.out.println(response);
+                    long startTime = System.currentTimeMillis();
+                    long timeout = 2000;
 
-                    clientState = ClientState.IN_LOBBY;
-                    break;
-                } else {
+                    while (!leaveCommandConfirmed && System.currentTimeMillis() - startTime < timeout) {
+                        try {
+                            Thread.sleep(100);
+                        } catch (InterruptedException e) {
+                        }
+                    }
+
+                    if (leaveCommandConfirmed){
+                        clientState = ClientState.IN_LOBBY;
+                    }
+
+                }  else if (messageToSend.equalsIgnoreCase("/help")) {
+                    sendMessageToChat("/help");
+
+
+                } else if (messageToSend.equalsIgnoreCase("/list")) {
+                    sendMessageToChat("/list");
+
+                }
+                else {
                     sendMessageToChat(messageToSend);
                 }
 
@@ -184,10 +201,18 @@ public class ChatClient {
         Thread.ofVirtual().start(() -> {
             String msgFromChat;
 
-            while (socket.isConnected() && clientState == ClientState.IN_CHAT_ROOM) {
+            while (socket.isConnected() && clientState == ClientState.IN_CHAT_ROOM && !leaveCommandConfirmed) {
                 try {
                     msgFromChat = bufferedReader.readLine();
-                    System.out.println(msgFromChat);
+                    ServerResponse serverResponse = ServerResponse.fromString(msgFromChat);
+                    if (serverResponse == ServerResponse.CHAT_COMMAND) {
+                        printUntilEnd();
+                    }else if (serverResponse == ServerResponse.LEAVING_ROOM) {
+                        printUntilEnd();
+                        leaveCommandConfirmed = true;
+                    }else{
+                        System.out.println(msgFromChat);
+                    }
                 }catch (IOException e){
                     closeEverything(socket, bufferedReader, bufferedWriter);
                 }

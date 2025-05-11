@@ -19,6 +19,15 @@ public class ThreadSafeRoomManager {
         }
     }
 
+    public void removeRoom(String roomName) {
+        lock.lock();
+        try {
+            rooms.removeIf(room -> room.getName().equals(roomName));
+        } finally {
+            lock.unlock();
+        }
+    }
+
     public boolean roomExists(String roomName) {
         lock.lock();
         try {

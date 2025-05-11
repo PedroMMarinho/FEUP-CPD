@@ -8,6 +8,8 @@ public enum ServerResponse {
     LISTING_ROOMS,
     CREATED_ROOM,
     LEAVING_ROOM,
+    CHAT_COMMAND,
+    CHAT_MESSAGE,
     JOIN_ROOM;
 
     public static ServerResponse fromString(String response) {
