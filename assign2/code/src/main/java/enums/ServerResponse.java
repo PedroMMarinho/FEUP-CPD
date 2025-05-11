@@ -2,29 +2,24 @@
 package enums;
 
 public enum ServerResponse {
-    REGISTER_SUCCESS,
-    REGISTER_FAILED,
-    LOGIN_SUCCESS,
-    LOGIN_FAILED,
-    JOINED_ROOM,
-    JOIN_FAILED,
+    OK,
+    ERROR,
+    LOGOUT_USER,
+    LISTING_ROOMS,
     CREATED_ROOM,
-    AI_ROOM_CREATED,
-    LEFT_ROOM,
-    LIST_ROOMS_RESPONSE,
-    LOGOUT_SUCCESS,
-    INVALID_REQUEST,
-    LOGIN_FAILED_ALREADY_LOGGED_IN,
-    UNKNOWN_COMMAND;
+    LEAVING_ROOM,
+    CHAT_COMMAND,
+    CHAT_MESSAGE,
+    JOIN_ROOM;
 
     public static ServerResponse fromString(String response) {
         if (response != null) {
             try {
                 return valueOf(response.toUpperCase());
             } catch (IllegalArgumentException e) {
-                return UNKNOWN_COMMAND;
+                return ERROR;
             }
         }
-        return UNKNOWN_COMMAND;
+        return ERROR;
     }
 }
