@@ -3,6 +3,7 @@ package client;
 import enums.ClientState;
 import enums.Command;
 import enums.ServerResponse;
+import models.Room;
 import models.ThreadSafeRoomManager;
 import models.User;
 import server.AuthenticationManager;
@@ -77,8 +78,8 @@ public class ChatClientHandler implements Runnable {
                     return;
                 }
                 System.out.println(input);
-                String[] parts = input.split(" ", 3);
-                if (parts.length < 3) {
+                String[] parts = input.split(" ", 4);
+                if (parts.length != 3) {
                     sendError("Invalid command format. Use: COMMAND username password");
                     continue;
                 }
@@ -171,24 +172,29 @@ public class ChatClientHandler implements Runnable {
                 return;
             }
 
-            String[] parts = input.split(" ", 2);
+            String[] parts = input.split(" ", 3);
 
             Command command = Command.fromString(parts[0]);
 
             switch (command) {
                 case Command.JOIN:
+                    String roomName = parts[1];
+                    if (!roomManager.roomExists(roomName)) {
+                        roomManager.addRoom(new Room(roomName, currentUser.getUsername()));
+                        sendSuccess("Created and joined Room: " + roomName);
+                    }else{
+                        roomManager.getRoomByName(roomName).addMember(currentUser.getUsername());
+                        sendSuccess("Joined Room: " + roomName);
+                    }
                     clientState = ClientState.IN_CHAT_ROOM;
-                    broadCastMessage("[SERVER] " + currentUser.getUsername() + " enters the chat room");
-                    bufferedWriter.write("You have joined the chat room. Type your messages or '/exit' to leave.");
-                    bufferedWriter.newLine();
-                    bufferedWriter.flush();
                     break;
                 case Command.LOGOUT:
                     sendResponse(ServerResponse.LOGOUT_USER, "Logged out from the server successfully.");
                     handleLogout();
                     break;
                 case Command.REFRESH:
-                    sendResponse(ServerResponse.LISTING_ROOMS, "");
+                    bufferedWriter.write(ServerResponse.LISTING_ROOMS.toString());
+                    bufferedWriter.newLine();
                     listRooms();
                     break;
                 default:
@@ -201,8 +207,16 @@ public class ChatClientHandler implements Runnable {
         loggedInManager.userLoggedOut(currentUser.getUsername());
         closeEverything(socket, bufferedReader, bufferedWriter);
     }
+    private void sendChatRoomInstructions() throws IOException {
+        bufferedWriter.write("Type messages to chat. Use command /leave or /help to see a list of commands.");
+        bufferedWriter.newLine();
+        bufferedWriter.flush();
+    }
 
     private void handleChatRoom() throws IOException {
+        clientHandlers.add(this);
+        sendChatRoomInstructions();
+
         while (clientState == ClientState.IN_CHAT_ROOM) {
             String message = bufferedReader.readLine();
             if (message == null) {
@@ -210,20 +224,20 @@ public class ChatClientHandler implements Runnable {
                 return;
             }
 
-            // Check if the client wants to exit the chat room
-            if (message.equalsIgnoreCase("/exit")) {
+            if (message.equalsIgnoreCase("/leave")) {
                 clientState = ClientState.IN_LOBBY;
-                broadCastMessage("[SERVER] " + currentUser.getUsername() + " leaves the chat room");
+                broadCastMessage("[" + currentUser.getUsername() + " left the chat room");
                 bufferedWriter.write("You have left the chat room and returned to the lobby.");
                 bufferedWriter.newLine();
                 bufferedWriter.flush();
+                removeClientHandler();
                 return;
             }
 
-            // Format and broadcast the message
             String formattedMessage = currentUser.getUsername() + ": " + message;
             broadCastMessage(formattedMessage);
         }
+
     }
 
     private void sendSuccess(String message) throws IOException {

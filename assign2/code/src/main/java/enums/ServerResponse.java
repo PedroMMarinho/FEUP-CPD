@@ -7,6 +7,7 @@ public enum ServerResponse {
     LOGOUT_USER,
     LISTING_ROOMS,
     CREATED_ROOM,
+    LEAVING_ROOM,
     JOIN_ROOM;
 
     public static ServerResponse fromString(String response) {

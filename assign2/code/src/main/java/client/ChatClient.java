@@ -41,6 +41,7 @@ public class ChatClient {
                     inLobby();
                     break;
                 case IN_CHAT_ROOM:
+                    inChatRoom();
                     break;
                 default:
                     break;
@@ -67,6 +68,29 @@ public class ChatClient {
         }
     }
 
+    public void inChatRoom(){
+        try {
+            listenForMessages();
+            String welcomeMessage = bufferedReader.readLine();
+            System.out.println(welcomeMessage);
+
+            while (clientState == ClientState.IN_CHAT_ROOM) {
+                sendMessage();
+                String response = bufferedReader.readLine();
+                ServerResponse serverResponse = ServerResponse.fromString(response);
+
+                switch (serverResponse){
+                    case LEAVING_ROOM:
+                        clientState = ClientState.IN_LOBBY;
+                        break;
+                }
+
+            }
+        }catch (Exception e){
+            closeEverything(socket,bufferedReader,bufferedWriter);
+        }
+    }
+
     public void inLobby() {
         try {
             printUntilEnd();
@@ -82,9 +106,9 @@ public class ChatClient {
                     case LOGOUT_USER:
                         clientState = ClientState.DISCONNECTED;
                         break;
-                    case JOIN_ROOM:
-                        break;
-                    case CREATED_ROOM:
+                    case OK:
+                        clientState = ClientState.IN_CHAT_ROOM;
+                        printSuccess();
                         break;
                     case LISTING_ROOMS:
                         printUntilEnd();
@@ -144,10 +168,6 @@ public class ChatClient {
 
     public void sendMessage() {
         try{
-            bufferedWriter.write(user.getUsername());
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
-
             Scanner scanner = new Scanner(System.in);
             while (socket.isConnected()) {
                 String messageToSend = scanner.nextLine();
