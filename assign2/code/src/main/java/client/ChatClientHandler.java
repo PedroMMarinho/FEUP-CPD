@@ -24,6 +24,7 @@ public class ChatClientHandler implements Runnable {
     private static final AuthenticationManager authManager;
     private static final LoggedInUserManager loggedInManager;
     private static final ThreadSafeRoomManager roomManager;
+    private String currentRoomName;
 
     static {
         authManager = new AuthenticationManager("src/main/java/server/data/users.txt");
@@ -178,7 +179,12 @@ public class ChatClientHandler implements Runnable {
 
             switch (command) {
                 case Command.JOIN:
+                    if (parts.length < 2) {
+                        sendError("Please specify a room name.");
+                        break;
+                    }
                     String roomName = parts[1];
+                    this.currentRoomName = roomName;
                     if (!roomManager.roomExists(roomName)) {
                         roomManager.addRoom(new Room(roomName, currentUser.getUsername()));
                         sendSuccess("Created and joined Room: " + roomName);
@@ -213,9 +219,25 @@ public class ChatClientHandler implements Runnable {
         bufferedWriter.flush();
     }
 
-    private void handleChatRoom() throws IOException {
+    private void printHelpInstructions() throws IOException {
+        bufferedWriter.write("======= Available commands =======");
+        bufferedWriter.newLine();
+        bufferedWriter.write("/leave - Leave the chat room and return to lobby");
+        bufferedWriter.newLine();
+        bufferedWriter.write("/help - Show this help message");
+        bufferedWriter.newLine();
+        bufferedWriter.write("END");
+        bufferedWriter.flush();
+    }
+
+    private void addClient()  {
         clientHandlers.add(this);
+        broadCastMessage("[" + currentUser.getUsername() + " joined the chat room]");
+    }
+
+    private void handleChatRoom() throws IOException {
         sendChatRoomInstructions();
+        addClient();
 
         while (clientState == ClientState.IN_CHAT_ROOM) {
             String message = bufferedReader.readLine();
@@ -225,17 +247,22 @@ public class ChatClientHandler implements Runnable {
             }
 
             if (message.equalsIgnoreCase("/leave")) {
+                if (currentRoomName != null && roomManager.roomExists(currentRoomName)) {
+                    Room room = roomManager.getRoomByName(currentRoomName);
+                    room.removeMember(currentUser.getUsername());
+                }
                 clientState = ClientState.IN_LOBBY;
-                broadCastMessage("[" + currentUser.getUsername() + " left the chat room");
                 bufferedWriter.write("You have left the chat room and returned to the lobby.");
                 bufferedWriter.newLine();
                 bufferedWriter.flush();
                 removeClientHandler();
                 return;
+            } else if (message.equalsIgnoreCase("/help")) {
+                printHelpInstructions();
+            }else {
+                String formattedMessage = currentUser.getUsername() + ": " + message;
+                broadCastMessage(formattedMessage);
             }
-
-            String formattedMessage = currentUser.getUsername() + ": " + message;
-            broadCastMessage(formattedMessage);
         }
 
     }
@@ -272,6 +299,7 @@ public class ChatClientHandler implements Runnable {
 
     public void removeClientHandler() {
         clientHandlers.remove(this);
+        broadCastMessage("[" + currentUser.getUsername() + " left the chat room]");
     }
 
     public void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {

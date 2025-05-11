@@ -68,6 +68,12 @@ public class ChatClient {
         }
     }
 
+    private void sendMessageToChat(String message) throws IOException{
+        bufferedWriter.write(message);
+        bufferedWriter.newLine();
+        bufferedWriter.flush();
+    }
+
     public void inChatRoom(){
         try {
             listenForMessages();
@@ -75,14 +81,21 @@ public class ChatClient {
             System.out.println(welcomeMessage);
 
             while (clientState == ClientState.IN_CHAT_ROOM) {
-                sendMessage();
-                String response = bufferedReader.readLine();
-                ServerResponse serverResponse = ServerResponse.fromString(response);
+                String messageToSend = scanner.nextLine();
 
-                switch (serverResponse){
-                    case LEAVING_ROOM:
-                        clientState = ClientState.IN_LOBBY;
-                        break;
+
+                if (messageToSend.equalsIgnoreCase("/leave")) {
+                    bufferedWriter.write("/leave");
+                    bufferedWriter.newLine();
+                    bufferedWriter.flush();
+
+                    String response = bufferedReader.readLine();
+                    System.out.println(response);
+
+                    clientState = ClientState.IN_LOBBY;
+                    break;
+                } else {
+                    sendMessageToChat(messageToSend);
                 }
 
             }
@@ -166,23 +179,12 @@ public class ChatClient {
         System.out.println(successMessage);
     }
 
-    public void sendMessage() {
-        try{
-            Scanner scanner = new Scanner(System.in);
-            while (socket.isConnected()) {
-                String messageToSend = scanner.nextLine();
-                bufferedWriter.write(user.getUsername() + ": " + messageToSend);
-            }
-        } catch (IOException e){
-            closeEverything(socket, bufferedReader, bufferedWriter);
-        }
-    }
 
     public void listenForMessages() {
         Thread.ofVirtual().start(() -> {
             String msgFromChat;
 
-            while (socket.isConnected()) {
+            while (socket.isConnected() && clientState == ClientState.IN_CHAT_ROOM) {
                 try {
                     msgFromChat = bufferedReader.readLine();
                     System.out.println(msgFromChat);
