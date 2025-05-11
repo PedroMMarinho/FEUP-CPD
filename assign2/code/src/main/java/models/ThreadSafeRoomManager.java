@@ -9,11 +9,47 @@ import java.util.stream.Collectors;
 public class ThreadSafeRoomManager {
     private final Set<Room> rooms = new HashSet<>();
     private final Lock lock = new ReentrantLock();
+    private final AIManager aiManager = new AIManager();
+
 
     public void addRoom(Room room) {
         lock.lock();
         try {
             rooms.add(room);
+        } finally {
+            lock.unlock();
+        }
+    }
+    public AIManager getAIManager() {
+        return aiManager;
+    }
+    public String getAIResponse(String roomName, String username, String message) {
+        if (!isAIRoom(roomName)) {
+            return null;
+        }
+
+        aiManager.addUserMessage(roomName, username, message);
+
+        return aiManager.getAIResponse(roomName);
+    }
+
+    public void createAIRoom(String name, String owner, String prompt) {
+        lock.lock();
+        try {
+            Room room = new Room(name, owner);
+            room.setAiRoom(true);
+            rooms.add(room);
+            aiManager.createAIRoom(name, prompt);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public boolean isAIRoom(String roomName) {
+        lock.lock();
+        try {
+            Room room = getRoomByName(roomName);
+            return room != null && room.isAiRoom();
         } finally {
             lock.unlock();
         }

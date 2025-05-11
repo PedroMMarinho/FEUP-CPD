@@ -17,8 +17,8 @@ public class ChatClient {
     private User user;
     private ClientState clientState = ClientState.AUTHENTICATING;
     private Scanner scanner;
-    private volatile boolean leaveCommandConfirmed = false;
-
+    private final Object leaveLock = new Object();
+    private boolean leaveCommandConfirmed = false;
 
     public ChatClient(Socket socket) {
         try{
@@ -89,23 +89,23 @@ public class ChatClient {
                 if (messageToSend.equalsIgnoreCase("/leave")) {
                     sendMessageToChat("/leave");
 
-                    long startTime = System.currentTimeMillis();
-                    long timeout = 2000;
-
-                    while (!leaveCommandConfirmed && System.currentTimeMillis() - startTime < timeout) {
-                        try {
-                            Thread.sleep(100);
-                        } catch (InterruptedException e) {
+                    synchronized (leaveLock) {
+                        while (!leaveCommandConfirmed) {
+                            try {
+                                leaveLock.wait();
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                                return;
+                            }
                         }
+
+                        clientState = ClientState.IN_LOBBY;
+                        leaveCommandConfirmed = false;
                     }
 
-                    if (leaveCommandConfirmed){
-                        clientState = ClientState.IN_LOBBY;
-                    }
 
                 }  else if (messageToSend.equalsIgnoreCase("/help")) {
                     sendMessageToChat("/help");
-
 
                 } else if (messageToSend.equalsIgnoreCase("/list")) {
                     sendMessageToChat("/list");
@@ -209,7 +209,10 @@ public class ChatClient {
                         printUntilEnd();
                     }else if (serverResponse == ServerResponse.LEAVING_ROOM) {
                         printUntilEnd();
-                        leaveCommandConfirmed = true;
+                        synchronized (leaveLock) {
+                            leaveCommandConfirmed = true;
+                            leaveLock.notify();
+                        }
                     }else{
                         System.out.println(msgFromChat);
                     }

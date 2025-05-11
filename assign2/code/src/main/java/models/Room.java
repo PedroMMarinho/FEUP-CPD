@@ -1,24 +1,57 @@
 package models;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Room {
     private final String name;
-    private final Set<String> members = new HashSet<>(); // Store usernames of members
+    private final Set<String> members = new HashSet<>();
     private final Lock membersLock = new ReentrantLock();
     private String owner;
+    private List<String> messageHistory = new ArrayList<>();
+    private final Lock messageHistoryLock = new ReentrantLock();
+    boolean isAiRoom = false;
 
     public Room(String name) {
         this.name = name;
+    }
+
+    public boolean isAiRoom() {
+        return isAiRoom;
     }
 
     public Room(String name, String owner) {
         this.name = name;
         this.owner = owner;
         addMember(owner);
+    }
+
+    public List<String> getMessageHistory() {
+        messageHistoryLock.lock();
+        try {
+            return new ArrayList<>(messageHistory);
+        }
+        finally {
+            messageHistoryLock.unlock();
+        }
+    }
+
+    public void addMessage(String message) {
+        messageHistoryLock.lock();
+        try {
+            messageHistory.add(message);
+        }
+        finally {
+            messageHistoryLock.unlock();
+        }
+    }
+
+    public void setAiRoom(boolean isAiRoom) {
+        this.isAiRoom = isAiRoom;
     }
 
     public String getName() {

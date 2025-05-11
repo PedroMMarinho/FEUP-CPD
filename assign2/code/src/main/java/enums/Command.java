@@ -9,6 +9,7 @@ public enum Command {
     LOGOUT,
     LEAVE_ROOM,
     CHANGE_STATE,
+    JOIN_AI,
     MESSAGE,
     UNKNOWN;
 

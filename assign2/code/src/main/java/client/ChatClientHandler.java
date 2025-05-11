@@ -137,7 +137,12 @@ public class ChatClientHandler implements Runnable {
                     .map(String::trim)
                     .forEach(room -> {
                         try {
-                            bufferedWriter.write("- " + room);
+                            if (roomManager.isAIRoom(room)) {
+                                bufferedWriter.write("- AI: " + room);
+                            }else{
+                                bufferedWriter.write("- Normal: " + room);
+                            }
+                            bufferedWriter.newLine();
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
@@ -145,8 +150,7 @@ public class ChatClientHandler implements Runnable {
         }else {
             bufferedWriter.write("No rooms available");
         }
-        bufferedWriter.newLine();
-        bufferedWriter.write("=========================");
+        bufferedWriter.write("===========================");
         bufferedWriter.newLine();
         bufferedWriter.write("END");
         bufferedWriter.newLine();
@@ -158,6 +162,8 @@ public class ChatClientHandler implements Runnable {
         bufferedWriter.write("==== LOBBY COMMANDS ====");
         bufferedWriter.newLine();
         bufferedWriter.write("JOIN <room>     - Join a chat room or create if does not exist.");
+        bufferedWriter.newLine();
+        bufferedWriter.write("JOIN_AI <room>    - Join a chat room or create it with an ai chat bot.");
         bufferedWriter.newLine();
         bufferedWriter.write("REFRESH         - Refresh room list");
         bufferedWriter.newLine();
@@ -189,8 +195,13 @@ public class ChatClientHandler implements Runnable {
                         roomManager.addRoom(new Room(roomName, currentUser.getUsername()));
                         sendSuccess("Created and joined Room: " + roomName);
                     }else{
-                        roomManager.getRoomByName(roomName).addMember(currentUser.getUsername());
-                        sendSuccess("Joined Room: " + roomName);
+                        if (!roomManager.isAIRoom(roomName)) {
+                            roomManager.getRoomByName(roomName).addMember(currentUser.getUsername());
+                            sendSuccess("Joined Room: " + roomName);
+                        }else {
+                            sendError("Can't join room using this command. Use JOIN_AI to enter.");
+                            break;
+                        }
                     }
                     clientState = ClientState.IN_CHAT_ROOM;
                     break;
@@ -203,6 +214,29 @@ public class ChatClientHandler implements Runnable {
                     bufferedWriter.newLine();
                     listRooms();
                     break;
+                case Command.JOIN_AI:
+                    if (parts.length < 2) {
+                        sendError("Please specify a room name.");
+                        break;
+                    }
+                    String aiRoomName = parts[1];
+                    String aiPrompt = "You are a helpful assistant named "+ roomManager.getAIManager().getBOT_NAME() + " in a chat room. Keep your responses concise and helpful.";
+                    this.currentRoomName = aiRoomName;
+                    if (!roomManager.roomExists(aiRoomName)) {
+                        aiPrompt += "Room was created by " + currentUser.getUsername();
+                        roomManager.createAIRoom(aiRoomName, currentUser.getUsername(), aiPrompt);
+                        sendSuccess("Created and joined AI Room: " + aiRoomName);
+                    } else if (roomManager.isAIRoom(aiRoomName)) {
+                        aiPrompt = currentUser.getUsername() + " has joined the chat room.";
+                        roomManager.getRoomByName(aiRoomName).addMember(currentUser.getUsername());
+                        roomManager.getAIManager().addUserMessage(currentUser.getUsername(), aiRoomName, aiPrompt);
+                        sendSuccess("Joined AI Room: " + aiRoomName);
+                    } else {
+                        sendError("Room exists but is not an AI room. Use JOIN command instead.");
+                        break;
+                    }
+                    clientState = ClientState.IN_CHAT_ROOM;
+                    break;
                 default:
                     sendError("Unknown command.");
                     break;
@@ -214,7 +248,11 @@ public class ChatClientHandler implements Runnable {
         closeEverything(socket, bufferedReader, bufferedWriter);
     }
     private void sendChatRoomInstructions() throws IOException {
-        bufferedWriter.write("Type messages to chat. Use commands /leave, /list or /help to see a list of commands.");
+        String instructions = "Type messages to chat. Use commands /leave, /list or /help to see a list of commands.";
+        if (roomManager.isAIRoom(currentRoomName)) {
+            instructions = "Type messages to chat. Use commands /leave, /list, /ai <prompt> ,/help  to see a list of commands.";
+        }
+        bufferedWriter.write(instructions);
         bufferedWriter.newLine();
         bufferedWriter.flush();
     }
@@ -228,6 +266,10 @@ public class ChatClientHandler implements Runnable {
         bufferedWriter.newLine();
         bufferedWriter.write("/list - List people in the chat room");
         bufferedWriter.newLine();
+        if (roomManager.isAIRoom(currentRoomName)) {
+            bufferedWriter.write("/ai <message> - Send a message directly to the Bot");
+            bufferedWriter.newLine();
+        }
         bufferedWriter.write("===================================");
         bufferedWriter.newLine();
         bufferedWriter.write("END");
@@ -273,6 +315,12 @@ public class ChatClientHandler implements Runnable {
                 throw new RuntimeException(e);
             }
         });
+
+        if (roomManager.isAIRoom(currentRoomName)) {
+            bufferedWriter.write("- Bot [AI]");
+            bufferedWriter.newLine();
+        }
+
         bufferedWriter.write("==============================");
         bufferedWriter.newLine();
         bufferedWriter.write("END");
@@ -291,12 +339,10 @@ public class ChatClientHandler implements Runnable {
                 return;
             }
 
-
-
-
             if (message.equalsIgnoreCase("/leave")) {
                 bufferedWriter.write(ServerResponse.LEAVING_ROOM.toString());
                 bufferedWriter.newLine();
+                roomManager.getAIManager().addUserMessage(currentRoomName, currentUser.getUsername(), currentUser.getUsername() + " left the chat room");
                 handleLeave();
                 return;
             } else if (message.equalsIgnoreCase("/help")) {
@@ -307,6 +353,9 @@ public class ChatClientHandler implements Runnable {
                 bufferedWriter.write(ServerResponse.CHAT_COMMAND.toString());
                 bufferedWriter.newLine();
                 listPeopleInRoom();
+            }else if (message.startsWith("/ai ") && roomManager.isAIRoom(currentRoomName)) {
+                String aiMessage = message.substring(4);
+                handleAIMessage(aiMessage);
             }
             else {
                 String formattedMessage = currentUser.getUsername() + ": " + message;
@@ -315,6 +364,36 @@ public class ChatClientHandler implements Runnable {
 
         }
 
+    }
+
+    private void broadCastMessageToAll(String message) {
+        for (ChatClientHandler chatClientHandler : clientHandlers) {
+            try {
+                if (chatClientHandler.clientState == ClientState.IN_CHAT_ROOM && chatClientHandler.currentRoomName.equals(this.currentRoomName)) {
+                    chatClientHandler.bufferedWriter.write(message);
+                    chatClientHandler.bufferedWriter.newLine();
+                    chatClientHandler.bufferedWriter.flush();
+                }
+            } catch (IOException e) {
+                chatClientHandler.closeEverything(chatClientHandler.socket, chatClientHandler.bufferedReader, chatClientHandler.bufferedWriter);
+            }
+        }
+    }
+
+    private void handleAIMessage(String message) throws IOException {
+        if (!roomManager.isAIRoom(currentRoomName)) {
+            sendError("This room doesn't have an AI assistant.");
+            return;
+        }
+
+        String aiResponse = roomManager.getAIResponse(currentRoomName, currentUser.getUsername(), message);
+
+        if (aiResponse != null) {
+            broadCastMessage(currentUser.getUsername() + ": prompted the following to the ai " + message);
+            broadCastMessageToAll(aiResponse);
+        } else {
+            sendError("The AI assistant couldn't process your request.");
+        }
     }
 
     private void sendSuccess(String message) throws IOException {
