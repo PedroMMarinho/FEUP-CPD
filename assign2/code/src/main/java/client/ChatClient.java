@@ -9,6 +9,9 @@ import models.User;
 import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.Condition;
 
 public class ChatClient {
     private Socket socket;
@@ -17,7 +20,10 @@ public class ChatClient {
     private User user;
     private ClientState clientState = ClientState.AUTHENTICATING;
     private Scanner scanner;
-    private final Object leaveLock = new Object();
+
+    private final ReentrantReadWriteLock leaveLock = new ReentrantReadWriteLock();
+    private final Lock leaveWriteLock = leaveLock.writeLock();
+    private final Condition leaveCondition = leaveWriteLock.newCondition();
     private boolean leaveCommandConfirmed = false;
 
     public ChatClient(Socket socket) {
@@ -89,10 +95,11 @@ public class ChatClient {
                 if (messageToSend.equalsIgnoreCase("/leave")) {
                     sendMessageToChat("/leave");
 
-                    synchronized (leaveLock) {
+                    leaveWriteLock.lock();
+                    try {
                         while (!leaveCommandConfirmed) {
                             try {
-                                leaveLock.wait();
+                                leaveCondition.await();
                             } catch (InterruptedException e) {
                                 Thread.currentThread().interrupt();
                                 return;
@@ -101,9 +108,9 @@ public class ChatClient {
 
                         clientState = ClientState.IN_LOBBY;
                         leaveCommandConfirmed = false;
+                    } finally {
+                        leaveWriteLock.unlock();
                     }
-
-
                 }  else if (messageToSend.equalsIgnoreCase("/help")) {
                     sendMessageToChat("/help");
 
@@ -114,7 +121,6 @@ public class ChatClient {
                 else {
                     sendMessageToChat(messageToSend);
                 }
-
             }
         }catch (Exception e){
             closeEverything(socket,bufferedReader,bufferedWriter);
@@ -207,16 +213,20 @@ public class ChatClient {
                     ServerResponse serverResponse = ServerResponse.fromString(msgFromChat);
                     if (serverResponse == ServerResponse.CHAT_COMMAND) {
                         printUntilEnd();
-                    }else if (serverResponse == ServerResponse.LEAVING_ROOM) {
+                    } else if (serverResponse == ServerResponse.LEAVING_ROOM) {
                         printUntilEnd();
-                        synchronized (leaveLock) {
+
+                        leaveWriteLock.lock();
+                        try {
                             leaveCommandConfirmed = true;
-                            leaveLock.notify();
+                            leaveCondition.signal();
+                        } finally {
+                            leaveWriteLock.unlock();
                         }
-                    }else{
+                    } else {
                         System.out.println(msgFromChat);
                     }
-                }catch (IOException e){
+                } catch (IOException e){
                     closeEverything(socket, bufferedReader, bufferedWriter);
                 }
             }

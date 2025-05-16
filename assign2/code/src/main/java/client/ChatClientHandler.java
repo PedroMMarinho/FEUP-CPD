@@ -149,6 +149,7 @@ public class ChatClientHandler implements Runnable {
                     });
         }else {
             bufferedWriter.write("No rooms available");
+            bufferedWriter.newLine();
         }
         bufferedWriter.write("===========================");
         bufferedWriter.newLine();
