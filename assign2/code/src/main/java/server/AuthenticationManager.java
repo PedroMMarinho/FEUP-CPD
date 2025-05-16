@@ -15,7 +15,7 @@ public class AuthenticationManager {
 
     public AuthenticationManager(String usersFilePath) {
         this.usersFilePath = usersFilePath;
-        this.userCredentials = new SimpleThreadSafeMapCustom<>(); // Replace with your custom map
+        this.userCredentials = new SimpleThreadSafeMapCustom<>();
         loadUsers();
     }
 

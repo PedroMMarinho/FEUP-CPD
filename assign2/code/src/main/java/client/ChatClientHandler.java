@@ -27,7 +27,7 @@ public class ChatClientHandler implements Runnable {
     private String currentRoomName;
 
     static {
-        authManager = new AuthenticationManager("src/main/java/server/data/users.txt");
+        authManager = new AuthenticationManager("code/data/users.txt");
         loggedInManager = new LoggedInUserManager();
         roomManager = new ThreadSafeRoomManager();
     }
@@ -105,6 +105,10 @@ public class ChatClientHandler implements Runnable {
                         sendError("Invalid username or password. Please try again.");
                     }
                 } else if (command.equals(Command.REGISTER)) {
+                    if(username.contains(":")){
+                        sendError("Invalid username");
+                        continue;
+                    }
                     boolean registered = authManager.registerUser(username, password);
                     if (registered) {
                         this.currentUser = new User(username);
@@ -280,8 +284,7 @@ public class ChatClientHandler implements Runnable {
 
     private void handleLeave() throws IOException {
         if (currentRoomName != null && roomManager.roomExists(currentRoomName)) {
-            Room room = roomManager.getRoomByName(currentRoomName);
-            room.removeMember(currentUser.getUsername());
+            roomManager.removeUserFromRoom(currentRoomName, currentUser.getUsername());
         }
         clientState = ClientState.IN_LOBBY;
         removeClientHandler();

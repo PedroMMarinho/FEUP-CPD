@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Room {
     private final String name;
@@ -15,6 +18,9 @@ public class Room {
     private List<String> messageHistory = new ArrayList<>();
     private final Lock messageHistoryLock = new ReentrantLock();
     boolean isAiRoom = false;
+    private final Lock deletionLock = new ReentrantLock();
+    private ScheduledFuture<?> deletionTask;
+    private final int ROOM_TIMEOUT = 60;
 
     public Room(String name) {
         this.name = name;
@@ -70,15 +76,20 @@ public class Room {
         membersLock.lock();
         try {
             members.add(username);
+            cancelRoomDeletion();
         } finally {
             membersLock.unlock();
         }
     }
 
-    public void removeMember(String username) {
+    public void removeMember(String username, ScheduledExecutorService scheduler, Runnable onDelete) {
         membersLock.lock();
         try {
             members.remove(username);
+            if(members.isEmpty()){
+                scheduleRoomDeletion(scheduler,onDelete);
+            }
+
         } finally {
             membersLock.unlock();
         }
@@ -99,6 +110,33 @@ public class Room {
             return new HashSet<>(members);
         } finally {
             membersLock.unlock();
+        }
+    }
+
+    public void scheduleRoomDeletion(ScheduledExecutorService scheduler, Runnable onDelete){
+        deletionLock.lock();
+        try{
+            if (deletionTask != null && !deletionTask.isDone()) {
+                deletionTask.cancel(false);
+            }
+            deletionTask = scheduler.schedule(onDelete, ROOM_TIMEOUT, TimeUnit.SECONDS);
+            System.out.println("Room '" + name + "' scheduled for deletion.");
+
+        } finally {
+            deletionLock.unlock();
+        }
+    }
+
+    public void cancelRoomDeletion(){
+        deletionLock.lock();
+        try{
+            if (deletionTask != null && !deletionTask.isDone()) {
+                deletionTask.cancel(false);
+                System.out.println("Deletion of room '" + name + "' canceled.");
+            }
+            deletionTask = null;
+        } finally {
+            deletionLock.unlock();
         }
     }
 

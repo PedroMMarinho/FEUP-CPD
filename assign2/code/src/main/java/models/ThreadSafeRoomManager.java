@@ -5,12 +5,14 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class ThreadSafeRoomManager {
     private final Set<Room> rooms = new HashSet<>();
     private final Lock lock = new ReentrantLock();
     private final AIManager aiManager = new AIManager();
-
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     public void addRoom(Room room) {
         lock.lock();
@@ -94,6 +96,14 @@ public class ThreadSafeRoomManager {
                     .collect(Collectors.joining(", "));
         } finally {
             lock.unlock();
+        }
+    }
+
+    public void removeUserFromRoom(String roomName, String username){
+        Room room = getRoomByName(roomName);
+        if (room != null) {
+            Runnable deleteTask = () -> Thread.startVirtualThread(() -> removeRoom(roomName));
+            room.removeMember(username, scheduler, deleteTask);
         }
     }
 
