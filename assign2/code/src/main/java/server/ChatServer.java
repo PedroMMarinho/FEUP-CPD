@@ -1,10 +1,12 @@
 package server;
 
 import client.ChatClientHandler;
-
+import javax.net.ssl.*;
 import java.io.IOException;
+import java.io.FileInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.KeyStore;
 
 public class ChatServer {
 
@@ -25,9 +27,26 @@ public class ChatServer {
             return;
         }
 
-        ServerSocket serverSocket = new ServerSocket(port);
-        ChatServer server = new ChatServer(port, serverSocket);
-        server.start();
+        try {
+            KeyStore ks = KeyStore.getInstance("JKS");
+            ks.load(new FileInputStream("code/server.keystore"), "password".toCharArray());
+
+            KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+            kmf.init(ks, "password".toCharArray());
+
+            SSLContext context = SSLContext.getInstance("TLS");
+            context.init(kmf.getKeyManagers(), null, null);
+
+            SSLServerSocketFactory ssf = context.getServerSocketFactory();
+            SSLServerSocket serverSocket = (SSLServerSocket) ssf.createServerSocket(port);
+
+            ChatServer server = new ChatServer(port, serverSocket);
+            server.start();
+
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
     }
 
     public ChatServer(int port, ServerSocket serverSocket) {

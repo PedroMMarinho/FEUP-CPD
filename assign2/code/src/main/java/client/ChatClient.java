@@ -8,10 +8,12 @@ import models.User;
 
 import java.io.*;
 import java.net.Socket;
+import java.security.KeyStore;
 import java.util.Scanner;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.Condition;
+import javax.net.ssl.*;
 
 public class ChatClient {
     private Socket socket;
@@ -263,8 +265,26 @@ public class ChatClient {
             System.err.println("Invalid port number: " + args[1]);
             return;
         }
-        Socket socket = new Socket(serverAddress, serverPort);
-        ChatClient client = new ChatClient(socket);
-        client.updateClientState();
+
+        try {
+            KeyStore trustStore = KeyStore.getInstance("JKS");
+            FileInputStream tsFile = new FileInputStream("code/clienttruststore.jks");
+            trustStore.load(tsFile, "trustpassword".toCharArray());
+
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init(trustStore);
+
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, tmf.getTrustManagers(), null);
+
+            SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+            SSLSocket socket = (SSLSocket) sslSocketFactory.createSocket(serverAddress, serverPort);
+
+            ChatClient client = new ChatClient(socket);
+            client.updateClientState();
+
+        } catch (Exception e){
+            e.printStackTrace();
+        }
     }
 }
