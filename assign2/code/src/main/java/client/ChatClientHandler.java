@@ -14,6 +14,7 @@ import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class ChatClientHandler implements Runnable {
     public static ArrayList<ChatClientHandler> clientHandlers = new ArrayList<>();
@@ -307,6 +308,19 @@ public class ChatClientHandler implements Runnable {
         bufferedWriter.flush();
     }
 
+    private void sendChatRoomHistory() throws IOException {
+        List<String> history = roomManager.getRoomByName(this.currentRoomName).getMessageHistory();
+        bufferedWriter.write(ServerResponse.CHAT_COMMAND.toString());
+        bufferedWriter.newLine();
+        for (String message : history) {
+            bufferedWriter.write(message);
+            bufferedWriter.newLine();
+        }
+        bufferedWriter.write("END");
+        bufferedWriter.newLine();
+        bufferedWriter.flush();
+    }
+
     private void printHelpInstructions() throws IOException {
         bufferedWriter.write("======= Available commands =======");
         bufferedWriter.newLine();
@@ -381,7 +395,7 @@ public class ChatClientHandler implements Runnable {
     private void handleChatRoom() throws IOException {
         sendChatRoomInstructions();
         addClient();
-
+        sendChatRoomHistory();
         while (clientState == ClientState.IN_CHAT_ROOM) {
             String message = bufferedReader.readLine();
             if (message == null) {
@@ -409,6 +423,7 @@ public class ChatClientHandler implements Runnable {
             }
             else {
                 String formattedMessage = currentUser.getUsername() + ": " + message;
+                roomManager.getRoomByName(currentRoomName).addMessage(formattedMessage);
                 broadCastMessage(formattedMessage);
             }
 
@@ -439,7 +454,10 @@ public class ChatClientHandler implements Runnable {
         String aiResponse = roomManager.getAIResponse(currentRoomName, currentUser.getUsername(), message);
 
         if (aiResponse != null) {
-            broadCastMessage(currentUser.getUsername() + ": prompted the following to the ai " + message);
+            String output = currentUser.getUsername() + ": prompted the following to the ai " + message;
+            roomManager.getRoomByName(currentRoomName).addMessage(output);
+            roomManager.getRoomByName(currentRoomName).addMessage(aiResponse);
+            broadCastMessage(output);
             broadCastMessageToAll(aiResponse);
         } else {
             sendError("The AI assistant couldn't process your request.");
