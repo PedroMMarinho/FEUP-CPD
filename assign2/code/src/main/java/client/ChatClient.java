@@ -123,7 +123,9 @@ public class ChatClient {
 
                 }
                 else {
-                    sendMessageToChat(messageToSend);
+                    if(!messageToSend.isBlank()){
+                        sendMessageToChat(messageToSend);
+                    }
                 }
             }
         }catch (Exception e){
