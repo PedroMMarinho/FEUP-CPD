@@ -29,7 +29,7 @@ public class ChatServer {
 
         try {
             KeyStore ks = KeyStore.getInstance("JKS");
-            ks.load(new FileInputStream("code/server.keystore"), "password".toCharArray());
+            ks.load(new FileInputStream("code/data/serverData/server.keystore"), "password".toCharArray());
 
             KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
             kmf.init(ks, "password".toCharArray());

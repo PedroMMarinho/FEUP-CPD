@@ -6,6 +6,7 @@ import enums.ServerResponse;
 import models.Room;
 import models.ThreadSafeRoomManager;
 import models.User;
+import models.UserSession;
 import server.AuthenticationManager;
 import server.LoggedInUserManager;
 
@@ -25,9 +26,10 @@ public class ChatClientHandler implements Runnable {
     private static final LoggedInUserManager loggedInManager;
     private static final ThreadSafeRoomManager roomManager;
     private String currentRoomName;
+    private UserSession session;
 
     static {
-        authManager = new AuthenticationManager("code/data/users.txt");
+        authManager = new AuthenticationManager("code/data/serverData/users.txt");
         loggedInManager = new LoggedInUserManager();
         roomManager = new ThreadSafeRoomManager();
     }
@@ -66,6 +68,41 @@ public class ChatClientHandler implements Runnable {
     }
 
     private void handleAuthentication() throws IOException {
+        String firstInput = bufferedReader.readLine();
+        if (firstInput == null) {
+            clientState = ClientState.DISCONNECTED;
+            return;
+        }
+
+        if (firstInput.startsWith("TOKEN ")) {
+            String token = firstInput.substring(6).trim();
+            session = authManager.getUserSessionByToken(token);
+            if (session != null && !session.isExpired() && session.isActive()) {
+                if(loggedInManager.isUserLoggedIn(session.getUsername())) {
+                    sendResponse(ServerResponse.INVALID_TOKEN, "User already logged in");
+                }
+                else {
+                    this.currentUser = new User(session.getUsername());
+                    loggedInManager.userLoggedIn(session.getUsername());
+                    if(session.getRoom() != null && roomManager.roomExists(session.getRoom().getName())){
+                        roomManager.getRoomByName(session.getRoom().getName()).addMember(session.getUsername());
+                        clientState = ClientState.IN_CHAT_ROOM;
+                        this.currentRoomName = session.getRoom().getName();
+                        sendResponse(ServerResponse.VALID_TOKEN, "Room");
+                    }
+                    else {
+                        session.removeRoom();
+                        clientState = ClientState.IN_LOBBY;
+                        sendResponse(ServerResponse.VALID_TOKEN, "Lobby");
+                    }
+                    sendSuccess(currentUser.getUsername());
+                    return;
+                }
+            } else {
+                sendResponse(ServerResponse.INVALID_TOKEN, "Invalid token. Proceeding to manual login.");
+            }
+        }
+
             bufferedWriter.write("Welcome to the chat server! Please login or register.");
             bufferedWriter.newLine();
             bufferedWriter.write("Enter commands LOGIN <username> <password> or REGISTER <username> <password>");
@@ -95,10 +132,11 @@ public class ChatClientHandler implements Runnable {
                 }
 
                 if (command.equals(Command.LOGIN)) {
-                    User user = authManager.authenticate(username, password);
-                    if (user != null) {
-                        this.currentUser = user;
+                    session = authManager.authenticate(username, password);
+                    if (session != null) {
+                        this.currentUser = new User(username);
                         loggedInManager.userLoggedIn(username);
+                        sendResponse(ServerResponse.NEW_TOKEN, session.getToken());
                         sendSuccess("Login successful! Welcome " + username);
                         break;
                     }else {
@@ -109,10 +147,11 @@ public class ChatClientHandler implements Runnable {
                         sendError("Invalid username");
                         continue;
                     }
-                    boolean registered = authManager.registerUser(username, password);
-                    if (registered) {
+                    session = authManager.registerUser(username, password);
+                    if (session != null) {
                         this.currentUser = new User(username);
                         loggedInManager.userLoggedIn(username);
+                        sendResponse(ServerResponse.NEW_TOKEN, session.getToken());
                         sendSuccess("Registration successful! Welcome " + username);
                         break;
                     } else {
@@ -123,8 +162,8 @@ public class ChatClientHandler implements Runnable {
                 }
             }
             clientState = ClientState.IN_LOBBY;
-
     }
+
     private void sendResponse(ServerResponse serverResponse, String message) throws  IOException{
         bufferedWriter.write(serverResponse.toString());
         bufferedWriter.newLine();
@@ -197,11 +236,15 @@ public class ChatClientHandler implements Runnable {
                     String roomName = parts[1];
                     this.currentRoomName = roomName;
                     if (!roomManager.roomExists(roomName)) {
-                        roomManager.addRoom(new Room(roomName, currentUser.getUsername()));
+                        Room newRoom = new Room(roomName, currentUser.getUsername());
+                        roomManager.addRoom(newRoom);
+                        session.setRoom(newRoom);
                         sendSuccess("Created and joined Room: " + roomName);
                     }else{
                         if (!roomManager.isAIRoom(roomName)) {
-                            roomManager.getRoomByName(roomName).addMember(currentUser.getUsername());
+                            Room room = roomManager.getRoomByName(roomName);
+                            room.addMember(currentUser.getUsername());
+                            session.setRoom(room);
                             sendSuccess("Joined Room: " + roomName);
                         }else {
                             sendError("Can't join room using this command. Use JOIN_AI to enter.");
@@ -230,11 +273,13 @@ public class ChatClientHandler implements Runnable {
                     if (!roomManager.roomExists(aiRoomName)) {
                         aiPrompt += "Room was created by " + currentUser.getUsername();
                         roomManager.createAIRoom(aiRoomName, currentUser.getUsername(), aiPrompt);
+                        session.setRoom(roomManager.getRoomByName(aiRoomName));
                         sendSuccess("Created and joined AI Room: " + aiRoomName);
                     } else if (roomManager.isAIRoom(aiRoomName)) {
                         aiPrompt = currentUser.getUsername() + " has joined the chat room.";
                         roomManager.getRoomByName(aiRoomName).addMember(currentUser.getUsername());
                         roomManager.getAIManager().addUserMessage(currentUser.getUsername(), aiRoomName, aiPrompt);
+                        session.setRoom(roomManager.getRoomByName(aiRoomName));
                         sendSuccess("Joined AI Room: " + aiRoomName);
                     } else {
                         sendError("Room exists but is not an AI room. Use JOIN command instead.");
@@ -249,7 +294,7 @@ public class ChatClientHandler implements Runnable {
         }
     }
     private void handleLogout()  {
-        loggedInManager.userLoggedOut(currentUser.getUsername());
+        session.closeSession();
         closeEverything(socket, bufferedReader, bufferedWriter);
     }
     private void sendChatRoomInstructions() throws IOException {
@@ -285,6 +330,7 @@ public class ChatClientHandler implements Runnable {
     private void handleLeave() throws IOException {
         if (currentRoomName != null && roomManager.roomExists(currentRoomName)) {
             roomManager.removeUserFromRoom(currentRoomName, currentUser.getUsername());
+            session.removeRoom();
         }
         clientState = ClientState.IN_LOBBY;
         removeClientHandler();
@@ -436,6 +482,11 @@ public class ChatClientHandler implements Runnable {
     }
 
     public void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
+        authManager.updateUserSession(session.getToken(), session);
+        loggedInManager.userLoggedOut(currentUser.getUsername());
+        if(currentRoomName != null){
+            roomManager.removeUserFromRoom(currentRoomName, currentUser.getUsername());
+        }
         removeClientHandler();
         try {
             if (bufferedReader != null) {

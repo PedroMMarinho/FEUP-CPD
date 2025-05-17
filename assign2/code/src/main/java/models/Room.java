@@ -20,7 +20,7 @@ public class Room {
     boolean isAiRoom = false;
     private final Lock deletionLock = new ReentrantLock();
     private ScheduledFuture<?> deletionTask;
-    private final int ROOM_TIMEOUT = 60;
+    private final int ROOM_TIMEOUT = 10;
 
     public Room(String name) {
         this.name = name;

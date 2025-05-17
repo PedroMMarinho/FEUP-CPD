@@ -1,0 +1,72 @@
+public void authenticate(){
+        try {
+            sendToken();
+            System.out.println("SEND TOKEN");
+
+            String response = bufferedReader.readLine();
+            ServerResponse serverResponse = ServerResponse.fromString(response);
+
+            System.out.println("TOKENRES" + serverResponse);
+
+            while (serverResponse != ServerResponse.VALID_TOKEN && serverResponse != ServerResponse.INVALID_TOKEN){
+                response = bufferedReader.readLine();
+                serverResponse = ServerResponse.fromString(response);
+            }
+
+            System.out.println("TOKENRESSSS" + serverResponse);
+
+            if(serverResponse == ServerResponse.VALID_TOKEN){
+                switch (response){
+                    case "LOBBY":
+                        clientState = ClientState.IN_LOBBY;
+                        break;
+                    case "ROOM":
+                        clientState = ClientState.IN_CHAT_ROOM;
+                        printSuccess();
+                        break;
+
+                }
+            }
+            else {
+                String welcomeMessage = bufferedReader.readLine();
+                System.out.println(welcomeMessage);
+
+                String instructionMessage = bufferedReader.readLine();
+                System.out.println(instructionMessage);
+
+                while (clientState == ClientState.AUTHENTICATING){
+                    System.out.print("> ");
+                    String command = sendCommand();
+
+
+                    response = bufferedReader.readLine();
+                    serverResponse = ServerResponse.fromString(response);
+                    if(serverResponse == ServerResponse.NEW_TOKEN){
+                        String token = bufferedReader.readLine();
+                        try (FileWriter writer = new FileWriter("code/data/clientData/client.token", false)) {
+                            writer.write(token);
+                            writer.flush();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        response = bufferedReader.readLine();
+                        serverResponse = ServerResponse.fromString(response);
+                    }
+                    if (serverResponse == ServerResponse.OK) {
+                        clientState = ClientState.IN_LOBBY;
+                        String[] parts = command.split(" ", 3);
+                        if (parts.length >= 2) {
+                            String username = parts[1];
+                            this.user = new User(username);
+                        }
+                        printSuccess();
+                    } else if (serverResponse == ServerResponse.ERROR) {
+                        printError();
+                    }
+                }
+            }
+
+        }catch (IOException e){
+            closeEverything(socket,bufferedReader,bufferedWriter);
+        }
+    }

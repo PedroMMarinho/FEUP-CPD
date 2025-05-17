@@ -14,6 +14,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.Condition;
 import javax.net.ssl.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class ChatClient {
     private Socket socket;
@@ -168,6 +170,27 @@ public class ChatClient {
 
     public void authenticate(){
         try {
+            sendToken();
+
+            String tokenResponse = bufferedReader.readLine();
+            if (ServerResponse.fromString(tokenResponse) == ServerResponse.VALID_TOKEN) {
+                String type = bufferedReader.readLine();
+                if(type.equals("Room")){
+                    clientState = ClientState.IN_CHAT_ROOM;
+                }
+                else {
+                    clientState = ClientState.IN_LOBBY;
+                }
+
+                bufferedReader.readLine();
+                String username = bufferedReader.readLine();
+
+                System.out.println("Resumed session. Welcome back " + username + "!");
+                return;
+            } else {
+                printError();
+            }
+
             String welcomeMessage = bufferedReader.readLine();
             System.out.println(welcomeMessage);
 
@@ -182,7 +205,20 @@ public class ChatClient {
                 String response = bufferedReader.readLine();
                 ServerResponse serverResponse = ServerResponse.fromString(response);
 
-                if (serverResponse == ServerResponse.OK) {
+                if (serverResponse == ServerResponse.ERROR) {
+                    printError();
+                }
+                else if(serverResponse == ServerResponse.NEW_TOKEN){
+                    String token = bufferedReader.readLine();
+                    try (FileWriter writer = new FileWriter("code/data/clientData/client.token", false)) {
+                        writer.write(token);
+                        writer.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    bufferedReader.readLine();
+
                     clientState = ClientState.IN_LOBBY;
                     String[] parts = command.split(" ", 3);
                     if (parts.length >= 2) {
@@ -190,12 +226,21 @@ public class ChatClient {
                         this.user = new User(username);
                     }
                     printSuccess();
-                } else if (serverResponse == ServerResponse.ERROR) {
-                    printError();
                 }
             }
         }catch (IOException e){
             closeEverything(socket,bufferedReader,bufferedWriter);
+        }
+    }
+
+    private void sendToken(){
+        try {
+            String token = Files.readString(Paths.get("code/data/clientData/client.token")).trim();
+            bufferedWriter.write("TOKEN " + token);
+            bufferedWriter.newLine();
+            bufferedWriter.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -268,7 +313,7 @@ public class ChatClient {
 
         try {
             KeyStore trustStore = KeyStore.getInstance("JKS");
-            FileInputStream tsFile = new FileInputStream("code/clienttruststore.jks");
+            FileInputStream tsFile = new FileInputStream("code/data/clientData/clienttruststore.jks");
             trustStore.load(tsFile, "trustpassword".toCharArray());
 
             TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());

@@ -3,19 +3,23 @@ package server;
 import interfaces.CustomConcurrentMap;
 import models.SimpleThreadSafeMapCustom;
 import models.User;
+import models.UserSession;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.UUID;
 
 public class AuthenticationManager {
     private String usersFilePath;
     private CustomConcurrentMap<String, String> userCredentials;
+    private CustomConcurrentMap<String, UserSession> userSessions;
 
     public AuthenticationManager(String usersFilePath) {
         this.usersFilePath = usersFilePath;
         this.userCredentials = new SimpleThreadSafeMapCustom<>();
+        this.userSessions = new SimpleThreadSafeMapCustom<>();
         loadUsers();
     }
 
@@ -33,23 +37,23 @@ public class AuthenticationManager {
         }
     }
 
-    public boolean registerUser(String username, String password) {
+    public UserSession registerUser(String username, String password) {
         if (userCredentials.containsKey(username)) {
-            return false;
+            return null;
         }
         String hashedPassword = hashPassword(password);
         if (hashedPassword != null) {
             userCredentials.put(username, hashedPassword);
             saveUser(username, hashedPassword);
-            return true;
+            return createSession(username);
         }
-        return false;
+        return null;
     }
 
-    public User authenticate(String username, String password) {
+    public UserSession authenticate(String username, String password) {
         String storedHash = userCredentials.get(username);
         if (storedHash != null && verifyPassword(password, storedHash)) {
-            return new User(username);
+            return createSession(username);
         }
         return null;
     }
@@ -86,5 +90,23 @@ public class AuthenticationManager {
     private boolean verifyPassword(String password, String hashedPassword) {
         String hashedInput = hashPassword(password);
         return hashedInput != null && hashedInput.equals(hashedPassword);
+    }
+
+    private UserSession createSession(String username){
+        String token = UUID.randomUUID().toString();
+        UserSession session = new UserSession(token, username);
+        userSessions.put(token, session);
+        return session;
+    }
+
+    public UserSession getUserSessionByToken(String token){
+        if(userSessions.containsKey(token))
+            return userSessions.get(token);
+        return null;
+    }
+
+    public void updateUserSession(String token, UserSession newSession){
+        userSessions.remove(token);
+        userSessions.put(newSession.getToken(), newSession);
     }
 }

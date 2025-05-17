@@ -10,7 +10,10 @@ public enum ServerResponse {
     LEAVING_ROOM,
     CHAT_COMMAND,
     CHAT_MESSAGE,
-    JOIN_ROOM;
+    JOIN_ROOM,
+    NEW_TOKEN,
+    VALID_TOKEN,
+    INVALID_TOKEN;
 
     public static ServerResponse fromString(String response) {
         if (response != null) {
