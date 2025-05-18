@@ -30,7 +30,7 @@ public class ChatClientHandler implements Runnable {
     private UserSession session;
 
     static {
-        authManager = new AuthenticationManager("data/serverData/users.txt");
+        authManager = new AuthenticationManager("code/data/serverData/users.txt");
         loggedInManager = new LoggedInUserManager();
         roomManager = new ThreadSafeRoomManager();
     }
