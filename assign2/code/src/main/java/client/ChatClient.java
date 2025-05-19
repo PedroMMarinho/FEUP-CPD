@@ -16,6 +16,7 @@ import java.util.concurrent.locks.Condition;
 import javax.net.ssl.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.Path;
 
 public class ChatClient {
     private Socket socket;
@@ -212,7 +213,15 @@ public class ChatClient {
                 }
                 else if(serverResponse == ServerResponse.NEW_TOKEN){
                     String token = bufferedReader.readLine();
-                    try (FileWriter writer = new FileWriter("code/data/clientData/client.token", false)) {
+                    Path path = Paths.get("data");
+                    if(!(Files.exists(path) && Files.isDirectory(path))) {
+                        Files.createDirectory(path);
+                    }
+                    Path filePath = Paths.get("data/client.token");
+                    if (!Files.exists(filePath)) {
+                        Files.createFile(filePath);
+                    }
+                    try (FileWriter writer = new FileWriter("data/client.token", false)) {
                         writer.write(token);
                         writer.flush();
                     } catch (IOException e) {
@@ -315,7 +324,9 @@ public class ChatClient {
 
         try {
             KeyStore trustStore = KeyStore.getInstance("JKS");
-            FileInputStream tsFile = new FileInputStream("code/data/clientData/clienttruststore.jks");
+            Path executableDir = Paths.get(ChatClient.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent();
+            Path relativeFile = executableDir.resolve("clienttruststore.jks");
+            FileInputStream tsFile = new FileInputStream(relativeFile.toFile());
             trustStore.load(tsFile, "trustpassword".toCharArray());
 
             TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
