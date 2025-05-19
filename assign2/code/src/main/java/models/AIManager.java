@@ -13,6 +13,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class AIManager {
     private static final String OLLAMA_API_URL = "http://localhost:11434/api/generate";
     private static final String DEFAULT_MODEL = "llama3";
+    private static final int MAX_HISTORY_MESSAGES = 20;
     private final String BOT_NAME = "Bot";
 
     private final Map<String, String> roomPrompts = new HashMap<>();
@@ -56,7 +57,44 @@ public class AIManager {
             Map<String, String> userMessage = new HashMap<>();
             userMessage.put("role", "user");
             userMessage.put("content", username + ": " + message);
-            roomMessageHistory.get(roomName).add(userMessage);
+
+            List<Map<String, String>> messages = roomMessageHistory.get(roomName);
+            messages.add(userMessage);
+
+            if (messages.size() > MAX_HISTORY_MESSAGES + 1) {
+                List<Map<String, String>> trimmedHistory = new ArrayList<>();
+                trimmedHistory.add(messages.get(0));
+                for (int i = messages.size() - MAX_HISTORY_MESSAGES; i < messages.size(); i++) {
+                    trimmedHistory.add(messages.get(i));
+                }
+                roomMessageHistory.put(roomName, trimmedHistory);
+            }
+        } finally {
+            roomMessageHistoryLock.unlock();
+        }
+    }
+
+    public void addNonUserMessage(String roomName, String username, String message) {
+        roomMessageHistoryLock.lock();
+        try {
+            if (!roomMessageHistory.containsKey(roomName)) {
+                return;
+            }
+
+            Map<String, String> chatMessage = new HashMap<>();
+            chatMessage.put("role", "system");
+            chatMessage.put("content", "Chat message: " + username + " said: " + message);
+            roomMessageHistory.get(roomName).add(chatMessage);
+
+            List<Map<String, String>> messages = roomMessageHistory.get(roomName);
+            if (messages.size() > MAX_HISTORY_MESSAGES + 1) {
+                List<Map<String, String>> trimmedHistory = new ArrayList<>();
+                trimmedHistory.add(messages.get(0));
+                for (int i = messages.size() - MAX_HISTORY_MESSAGES; i < messages.size(); i++) {
+                    trimmedHistory.add(messages.get(i));
+                }
+                roomMessageHistory.put(roomName, trimmedHistory);
+            }
         } finally {
             roomMessageHistoryLock.unlock();
         }
@@ -81,17 +119,14 @@ public class AIManager {
             connection.setRequestProperty("Content-Type", "application/json");
             connection.setDoOutput(true);
 
-            // Build the full conversation prompt
             String prompt = buildConversationPrompt(messages);
 
-            // Prepare the JSON request
             String jsonRequest = "{" +
                     "\"model\": \"" + DEFAULT_MODEL + "\"," +
                     "\"prompt\": \"" + escapeJson(prompt) + "\"," +
                     "\"stream\": false" +
                     "}";
 
-            // Send the request
             try (OutputStream os = connection.getOutputStream()) {
                 byte[] input = jsonRequest.getBytes("utf-8");
                 os.write(input, 0, input.length);
@@ -122,6 +157,8 @@ public class AIManager {
 
             String aiResponse = parseResponse(response.toString());
 
+            String formattedResponse = BOT_NAME + ": " + aiResponse;
+
             roomMessageHistoryLock.lock();
             try {
                 Map<String, String> assistantMessage = new HashMap<>();
@@ -132,7 +169,7 @@ public class AIManager {
                 roomMessageHistoryLock.unlock();
             }
 
-            return aiResponse;
+            return formattedResponse;
 
         } catch (IOException e) {
             System.err.println("Error connecting to Ollama: " + e.getMessage());
@@ -148,18 +185,18 @@ public class AIManager {
             String content = message.get("content");
 
             if ("system".equals(role)) {
-                // System message provides instructions to the AI
-                prompt.append("Instructions: ").append(content).append("\n\n");
+                if (content.startsWith("Chat message:")) {
+                    prompt.append(content.substring("Chat message: ".length())).append("\n");
+                } else {
+                    prompt.append("Instructions: ").append(content).append("\n\n");
+                }
             } else if ("user".equals(role)) {
-                // User messages
                 prompt.append(content).append("\n");
             } else if ("assistant".equals(role)) {
-                // Assistant's previous responses
                 prompt.append(BOT_NAME).append(": ").append(content).append("\n");
             }
         }
 
-        // Add a prefix for the bot's response
         prompt.append(BOT_NAME).append(": ");
 
         return prompt.toString();
@@ -178,7 +215,6 @@ public class AIManager {
     }
 
     private String parseResponse(String jsonResponse) {
-        // Look for "response" field in the JSON response
         int responseIndex = jsonResponse.indexOf("\"response\":");
         if (responseIndex == -1) {
             return "AI error: Invalid response format";
@@ -191,7 +227,6 @@ public class AIManager {
 
         int endIndex = jsonResponse.indexOf("\"", startIndex);
         while (endIndex > 0 && jsonResponse.charAt(endIndex - 1) == '\\') {
-            // Keep searching if the quote is escaped
             endIndex = jsonResponse.indexOf("\"", endIndex + 1);
         }
 

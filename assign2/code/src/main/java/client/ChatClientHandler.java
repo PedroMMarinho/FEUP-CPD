@@ -269,17 +269,27 @@ public class ChatClientHandler implements Runnable {
                         break;
                     }
                     String aiRoomName = parts[1];
-                    String aiPrompt = "You are a helpful assistant named "+ roomManager.getAIManager().getBOT_NAME() + " in a chat room. Keep your responses concise and helpful.";
+                    String aiPrompt = "You are a helpful assistant named " + roomManager.getAIManager().getBOT_NAME() +
+                            " in a chat room. Keep your responses concise and helpful. " +
+                            "You will see messages from all users in the room to provide context, " +
+                            "Remember the content and context of previous conversations in this room.";
+
                     this.currentRoomName = aiRoomName;
+
                     if (!roomManager.roomExists(aiRoomName)) {
-                        aiPrompt += "Room was created by " + currentUser.getUsername();
+                        aiPrompt += " This room was created by " + currentUser.getUsername() + ".";
                         roomManager.createAIRoom(aiRoomName, currentUser.getUsername(), aiPrompt);
                         session.setRoom(roomManager.getRoomByName(aiRoomName));
+                        roomManager.getAIManager().addNonUserMessage(aiRoomName, "System",
+                                "Room was created by " + currentUser.getUsername());
+
                         sendSuccess("Created and joined AI Room: " + aiRoomName);
                     } else if (roomManager.isAIRoom(aiRoomName)) {
-                        aiPrompt = currentUser.getUsername() + " has joined the chat room.";
                         roomManager.getRoomByName(aiRoomName).addMember(currentUser.getUsername());
-                        roomManager.getAIManager().addUserMessage(currentUser.getUsername(), aiRoomName, aiPrompt);
+
+                        String joinMessage = currentUser.getUsername() + " has joined the chat room.";
+                        roomManager.getAIManager().addNonUserMessage(aiRoomName, "System", joinMessage);
+
                         session.setRoom(roomManager.getRoomByName(aiRoomName));
                         sendSuccess("Joined AI Room: " + aiRoomName);
                     } else {
@@ -406,7 +416,8 @@ public class ChatClientHandler implements Runnable {
             if (message.equalsIgnoreCase("/leave")) {
                 bufferedWriter.write(ServerResponse.LEAVING_ROOM.toString());
                 bufferedWriter.newLine();
-                roomManager.getAIManager().addUserMessage(currentRoomName, currentUser.getUsername(), currentUser.getUsername() + " left the chat room");
+                String leaveMessage = currentUser.getUsername() + " left the chat room";
+                roomManager.getAIManager().addNonUserMessage(currentRoomName, "System", leaveMessage);
                 handleLeave();
                 return;
             } else if (message.equalsIgnoreCase("/help")) {
@@ -417,18 +428,20 @@ public class ChatClientHandler implements Runnable {
                 bufferedWriter.write(ServerResponse.CHAT_COMMAND.toString());
                 bufferedWriter.newLine();
                 listPeopleInRoom();
-            }else if (message.startsWith("/ai ") && roomManager.isAIRoom(currentRoomName)) {
+            } else if (message.startsWith("/ai ") && roomManager.isAIRoom(currentRoomName)) {
                 String aiMessage = message.substring(4);
                 handleAIMessage(aiMessage);
-            }
-            else {
+            } else {
                 String formattedMessage = currentUser.getUsername() + ": " + message;
                 roomManager.getRoomByName(currentRoomName).addMessage(formattedMessage);
+
+                if (roomManager.isAIRoom(currentRoomName)) {
+                    roomManager.getAIManager().addNonUserMessage(currentRoomName, currentUser.getUsername(), message);
+                }
+
                 broadCastMessage(formattedMessage);
             }
-
         }
-
     }
 
     private void broadCastMessageToAll(String message) {
@@ -454,7 +467,7 @@ public class ChatClientHandler implements Runnable {
         String aiResponse = roomManager.getAIResponse(currentRoomName, currentUser.getUsername(), message);
 
         if (aiResponse != null) {
-            String output = currentUser.getUsername() + ": prompted the following to the ai " + message;
+            String output = currentUser.getUsername() + ": prompted the following to the ai: " + message;
             roomManager.getRoomByName(currentRoomName).addMessage(output);
             roomManager.getRoomByName(currentRoomName).addMessage(aiResponse);
             broadCastMessage(output);
