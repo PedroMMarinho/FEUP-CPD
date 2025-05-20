@@ -214,9 +214,7 @@ public class ChatClient {
                 else if(serverResponse == ServerResponse.NEW_TOKEN){
                     String token = bufferedReader.readLine();
                     Path path = Paths.get("data");
-                    if(!(Files.exists(path) && Files.isDirectory(path))) {
-                        Files.createDirectory(path);
-                    }
+                    Files.createDirectories(path);
                     Path filePath = Paths.get("data/client.token");
                     if (!Files.exists(filePath)) {
                         Files.createFile(filePath);
@@ -245,15 +243,28 @@ public class ChatClient {
     }
 
     private void sendToken(){
-        try {
-            String token = Files.readString(Paths.get("code/data/clientData/client.token")).trim();
-            bufferedWriter.write("TOKEN " + token);
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
+        Path tokenPath = Paths.get("data/client.token");
+        if (Files.exists(tokenPath)) {
+            try {
+                String token = Files.readString(tokenPath).trim();
+                bufferedWriter.write("TOKEN " + token);
+                bufferedWriter.newLine();
+                bufferedWriter.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            // No token file exists, so send empty token or nothing
+            try {
+                bufferedWriter.write("TOKEN ");
+                bufferedWriter.newLine();
+                bufferedWriter.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
+
 
     private void printSuccess() throws  IOException{
         String successMessage = bufferedReader.readLine();
@@ -324,9 +335,10 @@ public class ChatClient {
 
         try {
             KeyStore trustStore = KeyStore.getInstance("JKS");
-            Path executableDir = Paths.get(ChatClient.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent();
-            Path relativeFile = executableDir.resolve("clienttruststore.jks");
-            FileInputStream tsFile = new FileInputStream(relativeFile.toFile());
+            InputStream tsFile = ChatClient.class.getClassLoader().getResourceAsStream("clienttruststore.jks");
+            if (tsFile == null) {
+                throw new FileNotFoundException("Could not find clienttruststore.jks in classpath");
+            }
             trustStore.load(tsFile, "trustpassword".toCharArray());
 
             TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
