@@ -106,13 +106,4 @@ public class ThreadSafeRoomManager {
             room.removeMember(username, scheduler, deleteTask);
         }
     }
-
-    public Set<Room> getAllRooms() {
-        lock.lock();
-        try {
-            return new HashSet<>(rooms);
-        } finally {
-            lock.unlock();
-        }
-    }
 }

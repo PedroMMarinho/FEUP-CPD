@@ -14,17 +14,12 @@ public class Room {
     private final String name;
     private final Set<String> members = new HashSet<>();
     private final Lock membersLock = new ReentrantLock();
-    private String owner;
-    private List<String> messageHistory = new ArrayList<>();
+    private final String owner;
+    private final List<String> messageHistory = new ArrayList<>();
     private final Lock messageHistoryLock = new ReentrantLock();
     boolean isAiRoom = false;
     private final Lock deletionLock = new ReentrantLock();
     private ScheduledFuture<?> deletionTask;
-    private final int ROOM_TIMEOUT = 10;
-
-    public Room(String name) {
-        this.name = name;
-    }
 
     public boolean isAiRoom() {
         return isAiRoom;
@@ -64,14 +59,6 @@ public class Room {
         return name;
     }
 
-    public String getOwner() {
-        return owner;
-    }
-
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
-
     public void addMember(String username) {
         membersLock.lock();
         try {
@@ -95,15 +82,6 @@ public class Room {
         }
     }
 
-    public boolean isMember(String username) {
-        membersLock.lock();
-        try {
-            return members.contains(username);
-        } finally {
-            membersLock.unlock();
-        }
-    }
-
     public Set<String> getMembers() {
         membersLock.lock();
         try {
@@ -119,6 +97,7 @@ public class Room {
             if (deletionTask != null && !deletionTask.isDone()) {
                 deletionTask.cancel(false);
             }
+            int ROOM_TIMEOUT = 10;
             deletionTask = scheduler.schedule(onDelete, ROOM_TIMEOUT, TimeUnit.SECONDS);
             System.out.println("Room '" + name + "' scheduled for deletion.");
 

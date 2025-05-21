@@ -1,10 +1,8 @@
 package client;
 
 import enums.ClientState;
-import enums.Command;
 import enums.ServerResponse;
-import models.Room;
-import models.User;
+
 
 import java.io.*;
 import java.net.Socket;
@@ -22,7 +20,6 @@ public class ChatClient {
     private Socket socket;
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
-    private User user;
     private ClientState clientState = ClientState.AUTHENTICATING;
     private Scanner scanner;
 
@@ -65,13 +62,12 @@ public class ChatClient {
     }
 
 
-    public String sendCommand() throws IOException{
+    public void sendCommand() throws IOException{
         String command = scanner.nextLine();
 
         bufferedWriter.write(command);
         bufferedWriter.newLine();
         bufferedWriter.flush();
-        return command;
     }
 
     private void printUntilEnd() throws IOException{
@@ -140,7 +136,7 @@ public class ChatClient {
 
             while (clientState == ClientState.IN_LOBBY) {
                 System.out.print("> ");
-                String command = sendCommand();
+                sendCommand();
 
                 String response = bufferedReader.readLine();
                 ServerResponse serverResponse = ServerResponse.fromString(response);
@@ -202,7 +198,7 @@ public class ChatClient {
 
             while (clientState == ClientState.AUTHENTICATING){
                 System.out.print("> ");
-                String command = sendCommand();
+                sendCommand();
 
 
                 String response = bufferedReader.readLine();
@@ -229,11 +225,6 @@ public class ChatClient {
                     bufferedReader.readLine();
 
                     clientState = ClientState.IN_LOBBY;
-                    String[] parts = command.split(" ", 3);
-                    if (parts.length >= 2) {
-                        String username = parts[1];
-                        this.user = new User(username);
-                    }
                     printSuccess();
                 }
             }
@@ -319,7 +310,7 @@ public class ChatClient {
         }
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args)  {
         if (args.length < 2) {
             System.out.println("Usage: <server_address> <port>");
             return;
