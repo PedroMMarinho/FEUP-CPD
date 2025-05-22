@@ -2,7 +2,6 @@ package server;
 
 import interfaces.CustomConcurrentMap;
 import models.SimpleThreadSafeMapCustom;
-import models.User;
 import models.UserSession;
 
 import java.io.*;
@@ -12,9 +11,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
 public class AuthenticationManager {
-    private String usersFilePath;
-    private CustomConcurrentMap<String, String> userCredentials;
-    private CustomConcurrentMap<String, UserSession> userSessions;
+    private final String usersFilePath;
+    private final CustomConcurrentMap<String, String> userCredentials;
+    private final CustomConcurrentMap<String, UserSession> userSessions;
 
     public AuthenticationManager(String usersFilePath) {
         this.usersFilePath = usersFilePath;

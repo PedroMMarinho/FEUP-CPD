@@ -3,6 +3,7 @@ package models;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,10 +17,8 @@ public class AIManager {
     private static final int MAX_HISTORY_MESSAGES = 20;
     private final String BOT_NAME = "Bot";
 
-    private final Map<String, String> roomPrompts = new HashMap<>();
     private final Map<String, List<Map<String, String>>> roomMessageHistory = new HashMap<>();
 
-    private final Lock roomPromptsLock = new ReentrantLock();
     private final Lock roomMessageHistoryLock = new ReentrantLock();
 
     public String getBOT_NAME() {
@@ -27,12 +26,6 @@ public class AIManager {
     }
 
     public void createAIRoom(String roomName, String prompt) {
-        roomPromptsLock.lock();
-        try {
-            roomPrompts.put(roomName, prompt);
-        } finally {
-            roomPromptsLock.unlock();
-        }
 
         roomMessageHistoryLock.lock();
         try {
@@ -61,14 +54,7 @@ public class AIManager {
             List<Map<String, String>> messages = roomMessageHistory.get(roomName);
             messages.add(userMessage);
 
-            if (messages.size() > MAX_HISTORY_MESSAGES + 1) {
-                List<Map<String, String>> trimmedHistory = new ArrayList<>();
-                trimmedHistory.add(messages.get(0));
-                for (int i = messages.size() - MAX_HISTORY_MESSAGES; i < messages.size(); i++) {
-                    trimmedHistory.add(messages.get(i));
-                }
-                roomMessageHistory.put(roomName, trimmedHistory);
-            }
+            updateHistory(roomName, messages);
         } finally {
             roomMessageHistoryLock.unlock();
         }
@@ -87,16 +73,20 @@ public class AIManager {
             roomMessageHistory.get(roomName).add(chatMessage);
 
             List<Map<String, String>> messages = roomMessageHistory.get(roomName);
-            if (messages.size() > MAX_HISTORY_MESSAGES + 1) {
-                List<Map<String, String>> trimmedHistory = new ArrayList<>();
-                trimmedHistory.add(messages.get(0));
-                for (int i = messages.size() - MAX_HISTORY_MESSAGES; i < messages.size(); i++) {
-                    trimmedHistory.add(messages.get(i));
-                }
-                roomMessageHistory.put(roomName, trimmedHistory);
-            }
+            updateHistory(roomName, messages);
         } finally {
             roomMessageHistoryLock.unlock();
+        }
+    }
+
+    private void updateHistory(String roomName, List<Map<String, String>> messages) {
+        if (messages.size() > MAX_HISTORY_MESSAGES + 1) {
+            List<Map<String, String>> trimmedHistory = new ArrayList<>();
+            trimmedHistory.add(messages.getFirst());
+            for (int i = messages.size() - MAX_HISTORY_MESSAGES; i < messages.size(); i++) {
+                trimmedHistory.add(messages.get(i));
+            }
+            roomMessageHistory.put(roomName, trimmedHistory);
         }
     }
 
@@ -128,14 +118,14 @@ public class AIManager {
                     "}";
 
             try (OutputStream os = connection.getOutputStream()) {
-                byte[] input = jsonRequest.getBytes("utf-8");
+                byte[] input = jsonRequest.getBytes(StandardCharsets.UTF_8);
                 os.write(input, 0, input.length);
             }
 
             int responseCode = connection.getResponseCode();
             if (responseCode != 200) {
                 try (BufferedReader br = new BufferedReader(
-                        new InputStreamReader(connection.getErrorStream(), "utf-8"))) {
+                        new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8))) {
                     StringBuilder errorResponse = new StringBuilder();
                     String responseLine;
                     while ((responseLine = br.readLine()) != null) {
@@ -148,7 +138,7 @@ public class AIManager {
 
             StringBuilder response = new StringBuilder();
             try (BufferedReader br = new BufferedReader(
-                    new InputStreamReader(connection.getInputStream(), "utf-8"))) {
+                    new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
                 String responseLine;
                 while ((responseLine = br.readLine()) != null) {
                     response.append(responseLine.trim());
@@ -240,28 +230,4 @@ public class AIManager {
                 .replace("\\\\", "\\");
     }
 
-    public boolean isAIRoom(String roomName) {
-        roomPromptsLock.lock();
-        try {
-            return roomPrompts.containsKey(roomName);
-        } finally {
-            roomPromptsLock.unlock();
-        }
-    }
-
-    public void removeAIRoom(String roomName) {
-        roomPromptsLock.lock();
-        try {
-            roomPrompts.remove(roomName);
-        } finally {
-            roomPromptsLock.unlock();
-        }
-
-        roomMessageHistoryLock.lock();
-        try {
-            roomMessageHistory.remove(roomName);
-        } finally {
-            roomMessageHistoryLock.unlock();
-        }
-    }
 }

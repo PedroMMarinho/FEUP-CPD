@@ -78,7 +78,7 @@ public class SimpleThreadSafeMapCustom<K, V> implements CustomConcurrentMap<K, V
     public Set<K> keySet() {
         lock.lock();
         try {
-            return new HashMap<>(internalMap).keySet(); // Return a copy to avoid external modification issues
+            return new HashMap<>(internalMap).keySet();
         } finally {
             lock.unlock();
         }
@@ -88,7 +88,7 @@ public class SimpleThreadSafeMapCustom<K, V> implements CustomConcurrentMap<K, V
     public Collection<V> values() {
         lock.lock();
         try {
-            return new HashMap<>(internalMap).values(); // Return a copy
+            return new HashMap<>(internalMap).values();
         } finally {
             lock.unlock();
         }

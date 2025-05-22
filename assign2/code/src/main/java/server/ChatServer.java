@@ -10,11 +10,10 @@ import java.security.KeyStore;
 
 public class ChatServer {
 
-    private int serverPort;
-    private ServerSocket serverSocket;
+    private final ServerSocket serverSocket;
 
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         if (args.length < 1) {
             System.err.println("Usage: Missing <port>");
             return;
@@ -50,9 +49,8 @@ public class ChatServer {
     }
 
     public ChatServer(int port, ServerSocket serverSocket) {
-        this.serverPort = port;
         this.serverSocket = serverSocket;
-        System.out.println("Chat server initializing on port: " + serverPort);
+        System.out.println("Chat server initializing on port: " + port);
     }
 
     public void start() {

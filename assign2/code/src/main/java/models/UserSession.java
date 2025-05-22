@@ -19,10 +19,6 @@ public class UserSession {
         return token;
     }
 
-    public Instant getExpiracyTime() {
-        return expiresAt;
-    }
-
     public String getUsername() {
         return username;
     }
