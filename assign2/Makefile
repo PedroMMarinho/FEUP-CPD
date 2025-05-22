@@ -11,7 +11,7 @@ HOST=localhost
 PORT=1234
 
 # Targets
-.PHONY: all build user1 user2 server clean-users clean-server clean-code clean
+.PHONY: all build user server clean-users clean-server clean-code clean
 
 all: build
 
@@ -20,15 +20,14 @@ build:
 	cd code && ./gradlew build
 	@echo "Build completed."
 
-user1:
-	@echo "Creating and entering user1 directory..."
-	mkdir -p user1
-	cd user1 && java -cp ../$(CLASSPATH):../$(RESOURCEPATH) $(CLIENT_CLASS) $(HOST) $(PORT)
-
-user2:
-	@echo "Creating and entering user2 directory..."
-	mkdir -p user2
-	cd user2 && java -cp ../$(CLASSPATH):../$(RESOURCEPATH) $(CLIENT_CLASS) $(HOST) $(PORT)
+user:
+	@if [ -z "$(N)" ]; then \
+		echo "Please specify user number with 'make user N=1'"; \
+		exit 1; \
+	fi
+	@echo "Creating and entering user$(N) directory..."
+	mkdir -p user$(N)
+	cd user$(N) && java -cp ../$(CLASSPATH):../$(RESOURCEPATH) $(CLIENT_CLASS) $(HOST) $(PORT)
 
 server:
 	@echo "Starting ChatServer..."
@@ -36,7 +35,7 @@ server:
 
 clean-users:
 	@echo "Removing user directories..."
-	rm -rf user1 user2
+	rm -rf user*
 	@echo "User directories removed."
 
 clean-server:
