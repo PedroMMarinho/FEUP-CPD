@@ -66,7 +66,6 @@ public class ChatServer {
                     try {
                         client.run();
                     }catch (Exception e) {
-                        closeServerSocket();
                     }
                 });
             }
