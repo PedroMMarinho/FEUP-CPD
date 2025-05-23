@@ -323,7 +323,14 @@ public class ChatClientHandler implements Runnable {
         bufferedWriter.write(ServerResponse.CHAT_COMMAND.toString());
         bufferedWriter.newLine();
         for (String message : history) {
-            bufferedWriter.write(message);
+            String[] parts = message.split(":", 2); // Split into at most 2 parts
+            String username = parts[0];
+            String messageContent = parts[1];
+
+            if (username.equals(currentUser.getUsername())){
+                username = "You";
+            }
+            bufferedWriter.write(username + ":" + messageContent);
             bufferedWriter.newLine();
         }
         bufferedWriter.write("END");

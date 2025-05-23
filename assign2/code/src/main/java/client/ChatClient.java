@@ -11,6 +11,7 @@ import java.util.Scanner;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 import javax.net.ssl.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -27,6 +28,8 @@ public class ChatClient {
     private final Lock leaveWriteLock = leaveLock.writeLock();
     private final Condition leaveCondition = leaveWriteLock.newCondition();
     private boolean leaveCommandConfirmed = false;
+    private static final Lock printLock = new ReentrantLock();
+    private final StringBuilder inputBuffer = new StringBuilder();
 
     public ChatClient(Socket socket) {
         try{
@@ -63,8 +66,9 @@ public class ChatClient {
 
 
     public void sendCommand() throws IOException{
-        String command = scanner.nextLine();
+        String command = readLineWithPersistentPrompt("");
 
+        System.out.println(command);
         bufferedWriter.write(command);
         bufferedWriter.newLine();
         bufferedWriter.flush();
@@ -91,9 +95,10 @@ public class ChatClient {
             listenForMessages();
 
             while (clientState == ClientState.IN_CHAT_ROOM) {
-                String messageToSend = scanner.nextLine();
+                String messageToSend = readLineWithPersistentPrompt("");
 
                 if (messageToSend.equalsIgnoreCase("/leave")) {
+                    clearConsole();
                     sendMessageToChat("/leave");
 
                     leaveWriteLock.lock();
@@ -106,7 +111,6 @@ public class ChatClient {
                                 return;
                             }
                         }
-
                         clientState = ClientState.IN_LOBBY;
                         leaveCommandConfirmed = false;
                     } finally {
@@ -120,7 +124,9 @@ public class ChatClient {
 
                 }
                 else {
+                    clearLastLine();
                     if(!messageToSend.isBlank()){
+                        System.out.println("You: " + messageToSend);
                         sendMessageToChat(messageToSend);
                     }
                 }
@@ -143,6 +149,7 @@ public class ChatClient {
 
                 switch (serverResponse){
                     case LOGOUT_USER:
+                        clearConsole();
                         clientState = ClientState.DISCONNECTED;
                         break;
                     case OK:
@@ -172,6 +179,7 @@ public class ChatClient {
             sendToken();
 
             String tokenResponse = bufferedReader.readLine();
+            clearConsole();
             if (ServerResponse.fromString(tokenResponse) == ServerResponse.VALID_TOKEN) {
                 String type = bufferedReader.readLine();
                 if(type.equals("Room")){
@@ -258,6 +266,7 @@ public class ChatClient {
 
 
     private void printSuccess() throws  IOException{
+        clearConsole();
         String successMessage = bufferedReader.readLine();
         System.out.println(successMessage);
     }
@@ -284,7 +293,7 @@ public class ChatClient {
                             leaveWriteLock.unlock();
                         }
                     } else {
-                        System.out.println(msgFromChat);
+                        printIncomingMessage(msgFromChat);
                     }
                 } catch (IOException e){
                     closeEverything(socket, bufferedReader, bufferedWriter);
@@ -347,5 +356,69 @@ public class ChatClient {
         } catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    public String readLineWithPersistentPrompt(String prompt) throws IOException {
+        inputBuffer.setLength(0);
+
+        // Enable raw mode (this would need JNI or ProcessBuilder to call stty)
+        // For now, we'll work with what we have
+
+        System.out.print(prompt);
+        System.out.flush();
+
+        int c;
+        while ((c = System.in.read()) != -1) {
+            if (c == '\n' || c == '\r') {
+                if (c == '\r') {
+                    System.in.mark(1);
+                    int next = System.in.read();
+                    if (next != '\n' && next != -1) {
+                        System.in.reset();
+                    }
+                }
+                System.out.print("\n");
+                break;
+            } else if (c == 127 || c == 8) {
+                if (inputBuffer.length() > 0) {
+                    inputBuffer.deleteCharAt(inputBuffer.length() - 1);
+                    System.out.print("\b \b");
+                    System.out.flush();
+                }
+            } else if (c >= 32 && c <= 126) {
+                inputBuffer.append((char) c);
+                System.out.print((char) c);
+                System.out.flush();
+            }
+        }
+
+        return inputBuffer.toString();
+    }
+
+    private void printIncomingMessage(String message) {
+        printLock.lock();
+        try {
+            System.out.print("\033[2K"); // Clear entire current line
+            System.out.print("\r");      // Return to beginning of line
+
+            System.out.println(message);
+
+            System.out.print(inputBuffer);
+            System.out.flush();
+        } finally {
+            printLock.unlock();
+        }
+    }
+
+    private void clearConsole() {
+        System.out.print("\033[H\033[2J\033[3J");
+        System.out.flush();
+    }
+
+    private void clearLastLine(){
+        System.out.print("\033[1A"); // Move up
+        System.out.print("\033[2K"); // Clear line
+        System.out.print("\033[2K");
+        System.out.flush();
     }
 }
