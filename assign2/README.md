@@ -26,7 +26,8 @@ This is a simple client-server chat application written in Java.
 To run the AI features: 
 
 - Docker 
-- Ollama docker image 
+
+> When running the server with AI features for the first time, it will download the AI model if not already installed
 
 ---
 
@@ -39,11 +40,7 @@ make build
 ```
 ## Running the AI
 
-To start the VM:
 
-```bash
-sudo docker run -d -v ollama:/root/.ollama -p 11434:11434 --name ollama14 ollama/ollama 
-```
 
 ## Running the Project
 
@@ -51,6 +48,12 @@ To run the server:
 
 ```bash
 make server
+```
+
+To run the server with AI features: 
+
+```bash
+make ai-server
 ```
 
 To run the client:
@@ -108,3 +111,13 @@ If the user is in an AI-assisted chat room, they can also:
 
 - **/ai `<prompt>`**: Prompt the AI. The AI will respond with an answer visible to all users in the room.
 
+## User Accounts
+
+In case you do not wish to register a new account when testing the program, the version of the program from the repository starts with a couple accounts registered: 
+
+
+|Username|Password| 
+|------|--------|
+| balls | gaming |
+| amia | cherry |
+| walpurgisnacht | pinkDreams |
