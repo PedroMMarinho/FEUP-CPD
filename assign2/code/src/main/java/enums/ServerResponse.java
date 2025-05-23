@@ -5,6 +5,7 @@ public enum ServerResponse {
     OK,
     ERROR,
     LOGOUT_USER,
+    EXIT_USER,
     LISTING_ROOMS,
     CREATED_ROOM,
     LEAVING_ROOM,

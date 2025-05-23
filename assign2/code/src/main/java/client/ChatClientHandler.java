@@ -106,7 +106,9 @@ public class ChatClientHandler implements Runnable {
 
             bufferedWriter.write("Welcome to the chat server! Please login or register.");
             bufferedWriter.newLine();
-            bufferedWriter.write("Enter commands LOGIN <username> <password> or REGISTER <username> <password>");
+            bufferedWriter.write("You can also just leave :)");
+            bufferedWriter.newLine();
+            bufferedWriter.write("Enter commands LOGIN <username> <password>, REGISTER <username> <password> or EXIT");
             bufferedWriter.newLine();
             bufferedWriter.flush();
 
@@ -119,6 +121,11 @@ public class ChatClientHandler implements Runnable {
                 System.out.println(input);
                 String[] parts = input.split(" ", 4);
                 if (parts.length != 3) {
+                    if(parts.length == 1 &  Command.fromString(parts[0].toUpperCase()).equals(Command.EXIT)){
+                        clientState = ClientState.DISCONNECTED;
+                        sendResponse(ServerResponse.EXIT_USER, "Bye bye!");
+                        return;
+                    }
                     sendError("Invalid command format. Use: COMMAND username password");
                     continue;
                 }
@@ -159,7 +166,7 @@ public class ChatClientHandler implements Runnable {
                         sendError("Username already exists");
                     }
                 } else {
-                    sendError("Unknown command. Use LOGIN or REGISTER");
+                    sendError("Unknown command. Use LOGIN, REGISTER or EXIT");
                 }
             }
             clientState = ClientState.IN_LOBBY;
@@ -529,12 +536,16 @@ public class ChatClientHandler implements Runnable {
 
     public void removeClientHandler() {
         clientHandlers.remove(this);
-        broadCastMessage("[" + currentUser.getUsername() + " left the chat room]");
+        if(currentUser != null){
+            broadCastMessage("[" + currentUser.getUsername() + " left the chat room]");
+        }
     }
 
     public void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
-        authManager.updateUserSession(session.getToken(), session);
-        loggedInManager.userLoggedOut(currentUser.getUsername());
+        if(currentUser != null){
+            authManager.updateUserSession(session.getToken(), session);
+            loggedInManager.userLoggedOut(currentUser.getUsername());
+        }
         if(currentRoomName != null){
             roomManager.removeUserFromRoom(currentRoomName, currentUser.getUsername());
         }

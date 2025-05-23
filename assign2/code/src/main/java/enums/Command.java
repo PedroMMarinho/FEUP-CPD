@@ -4,6 +4,7 @@ package enums;
 public enum Command {
     REGISTER,
     LOGIN,
+    EXIT,
     REFRESH,
     JOIN,
     LOGOUT,

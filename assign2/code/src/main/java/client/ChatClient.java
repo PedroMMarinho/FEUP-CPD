@@ -201,6 +201,9 @@ public class ChatClient {
             String welcomeMessage = bufferedReader.readLine();
             System.out.println(welcomeMessage);
 
+            String leaveMessage = bufferedReader.readLine();
+            System.out.println(leaveMessage);
+
             String instructionMessage = bufferedReader.readLine();
             System.out.println(instructionMessage);
 
@@ -234,6 +237,11 @@ public class ChatClient {
 
                     clientState = ClientState.IN_LOBBY;
                     printSuccess();
+                }
+                else if( serverResponse == ServerResponse.EXIT_USER){
+                    String line = bufferedReader.readLine();
+                    System.out.println(line);
+                    clientState = ClientState.DISCONNECTED;
                 }
             }
         }catch (IOException e){
