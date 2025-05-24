@@ -7,7 +7,6 @@ import enums.ServerResponse;
 import java.io.*;
 import java.net.Socket;
 import java.security.KeyStore;
-import java.util.Scanner;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.Condition;
@@ -22,7 +21,6 @@ public class ChatClient {
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
     private ClientState clientState = ClientState.AUTHENTICATING;
-    private Scanner scanner;
 
     private final ReentrantReadWriteLock leaveLock = new ReentrantReadWriteLock();
     private final Lock leaveWriteLock = leaveLock.writeLock();
@@ -36,7 +34,6 @@ public class ChatClient {
             this.socket = socket;
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-            this.scanner = new Scanner(System.in);
         }catch (IOException e){
             closeEverything(socket,bufferedReader, bufferedWriter);
         }
@@ -387,7 +384,7 @@ public class ChatClient {
                 System.out.print("\n");
                 break;
             } else if (c == 127 || c == 8) {
-                if (inputBuffer.length() > 0) {
+                if (!inputBuffer.isEmpty()) {
                     inputBuffer.deleteCharAt(inputBuffer.length() - 1);
                     System.out.print("\b \b");
                     System.out.flush();

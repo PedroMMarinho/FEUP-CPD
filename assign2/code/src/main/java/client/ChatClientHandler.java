@@ -249,19 +249,18 @@ public class ChatClientHandler implements Runnable {
                         sendError("Please specify a room name.");
                         break;
                     }
-                    String roomName = argument;
-                    this.currentRoomName = roomName;
-                    if (!roomManager.roomExists(roomName)) {
-                        Room newRoom = new Room(roomName, currentUser.getUsername());
+                    this.currentRoomName = argument;
+                    if (!roomManager.roomExists(argument)) {
+                        Room newRoom = new Room(argument, currentUser.getUsername());
                         roomManager.addRoom(newRoom);
                         session.setRoom(newRoom);
-                        sendSuccess("Created and joined Room: " + roomName);
+                        sendSuccess("Created and joined Room: " + argument);
                     } else {
-                        if (!roomManager.isAIRoom(roomName)) {
-                            Room room = roomManager.getRoomByName(roomName);
+                        if (!roomManager.isAIRoom(argument)) {
+                            Room room = roomManager.getRoomByName(argument);
                             room.addMember(currentUser.getUsername());
                             session.setRoom(room);
-                            sendSuccess("Joined Room: " + roomName);
+                            sendSuccess("Joined Room: " + argument);
                         } else {
                             sendError("Can't join room using this command. Use JOIN_AI to enter.");
                             break;
@@ -275,30 +274,29 @@ public class ChatClientHandler implements Runnable {
                         sendError("Please specify a room name.");
                         break;
                     }
-                    String aiRoomName = argument;
                     String aiPrompt = "You are a helpful assistant named " + roomManager.getAIManager().getBOT_NAME() +
                             " in a chat room. Keep your responses concise and helpful. " +
                             "You will see messages from all users in the room to provide context. " +
                             "Remember the content and context of previous conversations in this room.";
 
-                    this.currentRoomName = aiRoomName;
+                    this.currentRoomName = argument;
 
-                    if (!roomManager.roomExists(aiRoomName)) {
+                    if (!roomManager.roomExists(argument)) {
                         aiPrompt += " This room was created by " + currentUser.getUsername() + ".";
-                        roomManager.createAIRoom(aiRoomName, currentUser.getUsername(), aiPrompt);
-                        session.setRoom(roomManager.getRoomByName(aiRoomName));
-                        roomManager.getAIManager().addNonUserMessage(aiRoomName, "System",
+                        roomManager.createAIRoom(argument, currentUser.getUsername(), aiPrompt);
+                        session.setRoom(roomManager.getRoomByName(argument));
+                        roomManager.getAIManager().addNonUserMessage(argument, "System",
                                 "Room was created by " + currentUser.getUsername());
 
-                        sendSuccess("Created and joined AI Room: " + aiRoomName);
-                    } else if (roomManager.isAIRoom(aiRoomName)) {
-                        roomManager.getRoomByName(aiRoomName).addMember(currentUser.getUsername());
+                        sendSuccess("Created and joined AI Room: " + argument);
+                    } else if (roomManager.isAIRoom(argument)) {
+                        roomManager.getRoomByName(argument).addMember(currentUser.getUsername());
 
                         String joinMessage = currentUser.getUsername() + " has joined the chat room.";
-                        roomManager.getAIManager().addNonUserMessage(aiRoomName, "System", joinMessage);
+                        roomManager.getAIManager().addNonUserMessage(argument, "System", joinMessage);
 
-                        session.setRoom(roomManager.getRoomByName(aiRoomName));
-                        sendSuccess("Joined AI Room: " + aiRoomName);
+                        session.setRoom(roomManager.getRoomByName(argument));
+                        sendSuccess("Joined AI Room: " + argument);
                     } else {
                         sendError("Room exists but is not an AI room. Use JOIN command instead.");
                         break;
@@ -546,7 +544,7 @@ public class ChatClientHandler implements Runnable {
             authManager.updateUserSession(session.getToken(), session);
             loggedInManager.userLoggedOut(currentUser.getUsername());
         }
-        if(currentRoomName != null){
+        if(currentRoomName != null && currentUser != null){
             roomManager.removeUserFromRoom(currentRoomName, currentUser.getUsername());
         }
         removeClientHandler();
