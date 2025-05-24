@@ -68,7 +68,6 @@ public class ChatClient {
     public void sendCommand() throws IOException{
         String command = readLineWithPersistentPrompt("");
 
-        System.out.println(command);
         bufferedWriter.write(command);
         bufferedWriter.newLine();
         bufferedWriter.flush();

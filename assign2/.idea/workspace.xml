@@ -6,10 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="93615727-bd1b-4a19-b856-c52a07ac599c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code/src/main/java/client/ChatClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/code/src/main/java/client/ChatClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code/src/main/java/client/ChatClientHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/code/src/main/java/client/ChatClientHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code/src/main/java/enums/Command.java" beforeDir="false" afterPath="$PROJECT_DIR$/code/src/main/java/enums/Command.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code/src/main/java/enums/ServerResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/code/src/main/java/enums/ServerResponse.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -61,7 +57,7 @@
     "full.screen.before.presentation.mode": "false",
     "git-widget-placeholder": "master",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/home/Trolol/Uni/CPD/FEUP-CPD/assign2",
+    "last_opened_file_path": "/home/Trolol/Uni/Compiladores/comp2025-1c",
     "settings.editor.selected.configurable": "preferences.pluginManager"
   }
 }]]></component>
